@@ -1,0 +1,246 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1.1 Create `package.json`, `tsconfig.json` and Vitest config, and add `scripts/lib/types.ts`": [
+      {
+        "executionId": "1007c15b-b6b5-4dc7-b6b1-e553a833c775",
+        "chatSessionId": "sess_9cd4669e-68d5-4b60-8972-4c4483c87c60",
+        "timestamp": 1794677915512
+      },
+      {
+        "executionId": "1007c15b-b6b5-4dc7-b6b1-e553a833c775",
+        "chatSessionId": "sess_9cd4669e-68d5-4b60-8972-4c4483c87c60",
+        "timestamp": 1794677919555
+      },
+      {
+        "executionId": "1007c15b-b6b5-4dc7-b6b1-e553a833c775",
+        "chatSessionId": "sess_9cd4669e-68d5-4b60-8972-4c4483c87c60",
+        "timestamp": 1794678127459
+      }
+    ],
+    "2.1 Implement `mergeGitignore` in `scripts/lib/gitignore.ts`": [
+      {
+        "executionId": "1007c15b-b6b5-4dc7-b6b1-e553a833c775",
+        "chatSessionId": "sess_9cd4669e-68d5-4b60-8972-4c4483c87c60",
+        "timestamp": 1794677915589
+      },
+      {
+        "executionId": "1007c15b-b6b5-4dc7-b6b1-e553a833c775",
+        "chatSessionId": "sess_9cd4669e-68d5-4b60-8972-4c4483c87c60",
+        "timestamp": 1794678130205
+      },
+      {
+        "executionId": "1007c15b-b6b5-4dc7-b6b1-e553a833c775",
+        "chatSessionId": "sess_9cd4669e-68d5-4b60-8972-4c4483c87c60",
+        "timestamp": 1794678204211
+      }
+    ],
+    "2.3 Implement `formatReport` in `scripts/lib/report.ts`": [
+      {
+        "executionId": "1007c15b-b6b5-4dc7-b6b1-e553a833c775",
+        "chatSessionId": "sess_9cd4669e-68d5-4b60-8972-4c4483c87c60",
+        "timestamp": 1794677915639
+      },
+      {
+        "executionId": "1007c15b-b6b5-4dc7-b6b1-e553a833c775",
+        "chatSessionId": "sess_9cd4669e-68d5-4b60-8972-4c4483c87c60",
+        "timestamp": 1794678131013
+      },
+      {
+        "executionId": "1007c15b-b6b5-4dc7-b6b1-e553a833c775",
+        "chatSessionId": "sess_9cd4669e-68d5-4b60-8972-4c4483c87c60",
+        "timestamp": 1794678202619
+      }
+    ],
+    "2.5 Implement `needsGitkeep` in `scripts/lib/gitkeep.ts`": [
+      {
+        "executionId": "1007c15b-b6b5-4dc7-b6b1-e553a833c775",
+        "chatSessionId": "sess_9cd4669e-68d5-4b60-8972-4c4483c87c60",
+        "timestamp": 1794677915668
+      },
+      {
+        "executionId": "1007c15b-b6b5-4dc7-b6b1-e553a833c775",
+        "chatSessionId": "sess_9cd4669e-68d5-4b60-8972-4c4483c87c60",
+        "timestamp": 1794678131808
+      },
+      {
+        "executionId": "1007c15b-b6b5-4dc7-b6b1-e553a833c775",
+        "chatSessionId": "sess_9cd4669e-68d5-4b60-8972-4c4483c87c60",
+        "timestamp": 1794678203431
+      }
+    ],
+    "3.1 Implement `writeIfAbsent`, `ensureDir` and `copyTreeNoOverwrite` in `scripts/lib/fsx.ts`": [
+      {
+        "executionId": "1007c15b-b6b5-4dc7-b6b1-e553a833c775",
+        "chatSessionId": "sess_9cd4669e-68d5-4b60-8972-4c4483c87c60",
+        "timestamp": 1794677915693
+      },
+      {
+        "executionId": "1007c15b-b6b5-4dc7-b6b1-e553a833c775",
+        "chatSessionId": "sess_9cd4669e-68d5-4b60-8972-4c4483c87c60",
+        "timestamp": 1794678132606
+      },
+      {
+        "executionId": "1007c15b-b6b5-4dc7-b6b1-e553a833c775",
+        "chatSessionId": "sess_9cd4669e-68d5-4b60-8972-4c4483c87c60",
+        "timestamp": 1794678201861
+      }
+    ],
+    "4.1 Create `scripts/lib/templates.ts` with `CONTRACT_TS` and `STEERING_ES`": [
+      {
+        "executionId": "1007c15b-b6b5-4dc7-b6b1-e553a833c775",
+        "chatSessionId": "sess_9cd4669e-68d5-4b60-8972-4c4483c87c60",
+        "timestamp": 1794677915746
+      },
+      {
+        "executionId": "1007c15b-b6b5-4dc7-b6b1-e553a833c775",
+        "chatSessionId": "sess_9cd4669e-68d5-4b60-8972-4c4483c87c60",
+        "timestamp": 1794678133376
+      },
+      {
+        "executionId": "1007c15b-b6b5-4dc7-b6b1-e553a833c775",
+        "chatSessionId": "sess_9cd4669e-68d5-4b60-8972-4c4483c87c60",
+        "timestamp": 1794678202056
+      }
+    ],
+    "5.1 Create `scripts/lib/git.ts` with `git(root, args)` using `execFile` and an argument array": [
+      {
+        "executionId": "1007c15b-b6b5-4dc7-b6b1-e553a833c775",
+        "chatSessionId": "sess_9cd4669e-68d5-4b60-8972-4c4483c87c60",
+        "timestamp": 1794677915770
+      },
+      {
+        "executionId": "1007c15b-b6b5-4dc7-b6b1-e553a833c775",
+        "chatSessionId": "sess_9cd4669e-68d5-4b60-8972-4c4483c87c60",
+        "timestamp": 1794678133845
+      },
+      {
+        "executionId": "1007c15b-b6b5-4dc7-b6b1-e553a833c775",
+        "chatSessionId": "sess_9cd4669e-68d5-4b60-8972-4c4483c87c60",
+        "timestamp": 1794678251907
+      }
+    ],
+    "6.1 Implement `createDirectories`, `writeGitignore`, `writeSteering`, `writeContract` and `placeGitkeeps`": [
+      {
+        "executionId": "1007c15b-b6b5-4dc7-b6b1-e553a833c775",
+        "chatSessionId": "sess_9cd4669e-68d5-4b60-8972-4c4483c87c60",
+        "timestamp": 1794677915795
+      },
+      {
+        "executionId": "1007c15b-b6b5-4dc7-b6b1-e553a833c775",
+        "chatSessionId": "sess_9cd4669e-68d5-4b60-8972-4c4483c87c60",
+        "timestamp": 1794678254125
+      },
+      {
+        "executionId": "1007c15b-b6b5-4dc7-b6b1-e553a833c775",
+        "chatSessionId": "sess_9cd4669e-68d5-4b60-8972-4c4483c87c60",
+        "timestamp": 1794678304996
+      }
+    ],
+    "6.2 Implement `copyEcc`": [
+      {
+        "executionId": "1007c15b-b6b5-4dc7-b6b1-e553a833c775",
+        "chatSessionId": "sess_9cd4669e-68d5-4b60-8972-4c4483c87c60",
+        "timestamp": 1794677915817
+      },
+      {
+        "executionId": "1007c15b-b6b5-4dc7-b6b1-e553a833c775",
+        "chatSessionId": "sess_9cd4669e-68d5-4b60-8972-4c4483c87c60",
+        "timestamp": 1794678307219
+      },
+      {
+        "executionId": "1007c15b-b6b5-4dc7-b6b1-e553a833c775",
+        "chatSessionId": "sess_9cd4669e-68d5-4b60-8972-4c4483c87c60",
+        "timestamp": 1794678354934
+      }
+    ],
+    "6.3 Implement `gitInitCommitPush`": [
+      {
+        "executionId": "1007c15b-b6b5-4dc7-b6b1-e553a833c775",
+        "chatSessionId": "sess_9cd4669e-68d5-4b60-8972-4c4483c87c60",
+        "timestamp": 1794677915838
+      },
+      {
+        "executionId": "1007c15b-b6b5-4dc7-b6b1-e553a833c775",
+        "chatSessionId": "sess_9cd4669e-68d5-4b60-8972-4c4483c87c60",
+        "timestamp": 1794678357071
+      },
+      {
+        "executionId": "1007c15b-b6b5-4dc7-b6b1-e553a833c775",
+        "chatSessionId": "sess_9cd4669e-68d5-4b60-8972-4c4483c87c60",
+        "timestamp": 1794678439063
+      }
+    ],
+    "6.4 Implement `main` with argument parsing and step orchestration": [
+      {
+        "executionId": "1007c15b-b6b5-4dc7-b6b1-e553a833c775",
+        "chatSessionId": "sess_9cd4669e-68d5-4b60-8972-4c4483c87c60",
+        "timestamp": 1794677915858
+      },
+      {
+        "executionId": "1007c15b-b6b5-4dc7-b6b1-e553a833c775",
+        "chatSessionId": "sess_9cd4669e-68d5-4b60-8972-4c4483c87c60",
+        "timestamp": 1794678441399
+      },
+      {
+        "executionId": "1007c15b-b6b5-4dc7-b6b1-e553a833c775",
+        "chatSessionId": "sess_9cd4669e-68d5-4b60-8972-4c4483c87c60",
+        "timestamp": 1794678475841
+      }
+    ],
+    "8. Final checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "1007c15b-b6b5-4dc7-b6b1-e553a833c775",
+        "chatSessionId": "sess_9cd4669e-68d5-4b60-8972-4c4483c87c60",
+        "timestamp": 1794677915910
+      },
+      {
+        "executionId": "1007c15b-b6b5-4dc7-b6b1-e553a833c775",
+        "chatSessionId": "sess_9cd4669e-68d5-4b60-8972-4c4483c87c60",
+        "timestamp": 1794678480625
+      }
+    ],
+    "1. Set up project tooling and shared types": [
+      {
+        "executionId": "1007c15b-b6b5-4dc7-b6b1-e553a833c775",
+        "chatSessionId": "sess_9cd4669e-68d5-4b60-8972-4c4483c87c60",
+        "timestamp": 1794678127518
+      }
+    ],
+    "3. Implement file-system helpers": [
+      {
+        "executionId": "1007c15b-b6b5-4dc7-b6b1-e553a833c775",
+        "chatSessionId": "sess_9cd4669e-68d5-4b60-8972-4c4483c87c60",
+        "timestamp": 1794678201922
+      }
+    ],
+    "4. Implement templates": [
+      {
+        "executionId": "1007c15b-b6b5-4dc7-b6b1-e553a833c775",
+        "chatSessionId": "sess_9cd4669e-68d5-4b60-8972-4c4483c87c60",
+        "timestamp": 1794678202091
+      }
+    ],
+    "2. Implement pure logic modules": [
+      {
+        "executionId": "1007c15b-b6b5-4dc7-b6b1-e553a833c775",
+        "chatSessionId": "sess_9cd4669e-68d5-4b60-8972-4c4483c87c60",
+        "timestamp": 1794678204250
+      }
+    ],
+    "5. Implement git wrapper": [
+      {
+        "executionId": "1007c15b-b6b5-4dc7-b6b1-e553a833c775",
+        "chatSessionId": "sess_9cd4669e-68d5-4b60-8972-4c4483c87c60",
+        "timestamp": 1794678251938
+      }
+    ],
+    "6. Implement bootstrap steps and wiring in `scripts/bootstrap.ts`": [
+      {
+        "executionId": "1007c15b-b6b5-4dc7-b6b1-e553a833c775",
+        "chatSessionId": "sess_9cd4669e-68d5-4b60-8972-4c4483c87c60",
+        "timestamp": 1794678475893
+      }
+    ]
+  }
+}
