@@ -166,6 +166,58 @@ export const TRAMITES: TramiteRecord[] = [
     ],
   },
   {
+    id: 'licencia-permanente',
+    nombreTramite: 'Licencia de conducir Tipo A Permanente CDMX',
+    categoria: 'Movilidad y Vehículos (SEMOVI)',
+    dependencia: 'Secretaría de Movilidad (SEMOVI) y Secretaría de Administración y Finanzas',
+    requiereLlaveCDMX: true,
+    modalidad: 'Híbrido',
+    resumenCiudadano:
+      'La Licencia Tipo A Permanente se paga una sola vez ($1,500.00 MXN) y ya no se renueva. Se tramita desde celular o computadora. Si nunca has tenido licencia Tipo A en la CDMX debes aprobar un examen teórico digital en línea; si ya tienes antecedente de licencia en la CDMX, el sistema la procesa de forma automática sin examen. Solo se puede tramitar hasta el 31 de diciembre de 2026.',
+    pasosAccion: [
+      'Entra al portal de trámites de la CDMX con tu Llave CDMX.',
+      'Elige "Licencia de conducir Tipo A Permanente" y captura tus datos.',
+      'Si no tienes antecedente de licencia Tipo A en la CDMX, presenta el examen teórico digital en línea.',
+      'Genera tu línea de captura de $1,500.00 MXN y págala.',
+      'Descarga tu licencia y confirma en el sistema si requieres acudir a un módulo por el plástico.',
+    ],
+    documentosRequeridos: [
+      'Llave CDMX activa',
+      'Identificación oficial vigente',
+      'CURP',
+      'Comprobante de domicilio reciente (máximo 3 meses)',
+      'Línea de captura pagada ($1,500.00 MXN)',
+      'Aprobar el examen teórico digital en línea (solo si no tienes antecedente de licencia Tipo A en la CDMX)',
+    ],
+    costoMXN: 1500,
+    tiempoResolucion:
+      'El trámite en línea se resuelve en pocos días (hasta 72 horas según reportes de prensa). Fecha límite para tramitarla: 31 de diciembre de 2026',
+    fundamentoNormativo:
+      'Ley de Movilidad de la Ciudad de México, Reglamento de Tránsito de la Ciudad de México y Código Fiscal de la Ciudad de México (derechos por licencia permanente)',
+    alertaAnticorrupcion:
+      'La cuota oficial es de $1,500.00 MXN en una sola exhibición, pagada con línea de captura. Nadie debe cobrarte extra por "acelerar" el examen ni la cita.',
+    impactoComunitario: {
+      poblacionObjetivo: 'Personas conductoras de automóvil particular en la CDMX',
+      ahorroEstimado:
+        'Un solo pago de $1,500.00 MXN en lugar de renovar cada 3 años ($1,142.00 MXN por periodo)',
+    },
+    palabrasClave: [
+      'licencia permanente',
+      'licencia de conducir permanente',
+      'licencia tipo a permanente',
+      'permanente',
+      'permanent',
+      'permanete',
+      'permanenete',
+      'licencia vitalicia',
+      'licencia definitiva',
+      'de por vida',
+      'sin renovar',
+      'que no se renueve',
+      'no renovar la licencia',
+    ],
+  },
+  {
     id: 'licencia-tipo-a',
     nombreTramite: 'Licencia de conducir Tipo A (automovilista particular, 3 años)',
     categoria: 'Movilidad y Vehículos (SEMOVI)',
@@ -173,7 +225,7 @@ export const TRAMITES: TramiteRecord[] = [
     requiereLlaveCDMX: true,
     modalidad: 'Híbrido',
     resumenCiudadano:
-      'La licencia Tipo A es para conducir automóvil particular en la CDMX. Se expide, renueva o repone con vigencia de tres años. Haces el registro y el pago en línea y acudes a un módulo de SEMOVI con tu cita para la toma de fotografía y firma.',
+      'La licencia Tipo A de 3 años ($1,142.00 MXN) es para conducir automóvil particular en la CDMX. Se expide, renueva o repone con vigencia de tres años. Si prefieres pagar una sola vez, existe la Licencia Permanente ($1,500.00 MXN). Haces el registro y el pago en línea y acudes a un módulo de SEMOVI con tu cita para la toma de fotografía y firma.',
     pasosAccion: [
       'Entra a tramites.cdmx.gob.mx con tu cuenta Llave CDMX.',
       'Elige "Licencia de conducir tipo A" y captura tus datos.',
@@ -496,23 +548,27 @@ export interface ExtrasTramite {
   radiografia: RadiografiaCallejera;
 }
 
+// Únicamente URLs oficiales confirmadas para la demo.
+export const URL_OFICIALES = {
+  tramites: 'https://tramites.cdmx.gob.mx/',
+  llave: 'https://llave.cdmx.gob.mx/',
+  citasSemovi: 'https://app.semovi.cdmx.gob.mx/citas/',
+  finanzas: 'https://www.finanzas.cdmx.gob.mx/',
+  siapem: 'https://siapem.cdmx.gob.mx/',
+  seduvi: 'https://www.seduvi.cdmx.gob.mx/',
+  atencionCiudadana: 'https://atencionciudadana.cdmx.gob.mx/',
+  registroCivil: 'https://www.rcivil.cdmx.gob.mx/',
+} as const;
+
 const L = {
-  llave: { etiqueta: '🔑 Llave CDMX', url: 'https://llave.cdmx.gob.mx' },
-  pago: {
-    etiqueta: '💳 Pagar línea de captura (Finanzas)',
-    url: 'https://data.finanzas.cdmx.gob.mx',
-  },
-  citasSemovi: {
-    etiqueta: '📅 Agendar cita SEMOVI',
-    url: 'https://app.semovi.cdmx.gob.mx/citas/',
-  },
-  seduvi: { etiqueta: '🏙️ Portal SEDUVI', url: 'https://seduvi.cdmx.gob.mx' },
-  siapem: { etiqueta: '🏪 SIAPEM', url: 'https://siapem.cdmx.gob.mx' },
-  actas: { etiqueta: '📄 Actas en línea', url: 'https://actas.cdmx.gob.mx' },
-  suac: {
-    etiqueta: '📣 Atención Ciudadana',
-    url: 'https://atencionciudadana.cdmx.gob.mx',
-  },
+  tramites: { etiqueta: '🏛️ Portal de Trámites CDMX', url: URL_OFICIALES.tramites },
+  llave: { etiqueta: '🔑 Llave CDMX', url: URL_OFICIALES.llave },
+  pago: { etiqueta: '💳 Pagos y líneas de captura (Finanzas)', url: URL_OFICIALES.finanzas },
+  citasSemovi: { etiqueta: '📅 Agendar cita SEMOVI', url: URL_OFICIALES.citasSemovi },
+  seduvi: { etiqueta: '🏙️ Portal SEDUVI', url: URL_OFICIALES.seduvi },
+  siapem: { etiqueta: '🏪 SIAPEM', url: URL_OFICIALES.siapem },
+  actas: { etiqueta: '📄 Registro Civil CDMX', url: URL_OFICIALES.registroCivil },
+  suac: { etiqueta: '📣 Atención Ciudadana / Locatel', url: URL_OFICIALES.atencionCiudadana },
 };
 
 const FUENTE_RADIOGRAFIA =
@@ -522,6 +578,45 @@ const NOTA_RADIOGRAFIA =
   'Verifica siempre en el sitio oficial antes de acudir.';
 
 export const EXTRAS_TRAMITE: Record<string, ExtrasTramite> = {
+  'licencia-permanente': {
+    variantes: [
+      'Primera vez en CDMX: examen teórico digital en línea',
+      'Con antecedente de licencia Tipo A en CDMX: trámite automático sin examen',
+    ],
+    pasosOficiales: [
+      {
+        numero: 1,
+        titulo: 'Llave CDMX y pago de línea de captura ($1,500.00 MXN)',
+        descripcion:
+          'Entra al portal de trámites con tu Llave CDMX, elige Licencia Permanente y paga tu línea de captura.',
+        enlaces: [L.tramites, L.llave, L.pago],
+      },
+      {
+        numero: 2,
+        titulo: 'Examen teórico digital o validación automática',
+        descripcion:
+          'Sin antecedente de licencia Tipo A en CDMX: presenta el examen teórico en línea. Con antecedente: el sistema valida tu historial de forma automática.',
+        enlaces: [L.tramites],
+      },
+      {
+        numero: 3,
+        titulo: 'Cita (si el sistema la pide) y módulo físico más cercano',
+        descripcion:
+          'Si necesitas acudir por tu licencia, agenda en el Sistema de Citas de SEMOVI. Recuerda que la permanente solo se tramita hasta el 31 de diciembre de 2026.',
+        enlaces: [L.citasSemovi],
+        muestraModulo: true,
+      },
+    ],
+    radiografia: {
+      fuente: FUENTE_RADIOGRAFIA,
+      advertencias: [
+        'Hay una fecha límite: la permanente solo se tramita hasta el 31 de diciembre de 2026; no esperes a diciembre.',
+        'El examen teórico es en línea; estudia el reglamento antes de pagar para no repetirlo.',
+        'Desconfía de páginas que cobran más de $1,500.00 MXN: solo paga con línea de captura oficial.',
+      ],
+      nota: NOTA_RADIOGRAFIA,
+    },
+  },
   'licencia-tipo-a': {
     variantes: ['Nueva', 'Renovación', 'Digital (renovación en línea, si aplica a tu caso)'],
     pasosOficiales: [

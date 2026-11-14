@@ -1,4 +1,4 @@
-// Motor del agente (Rol 1). Local primero; LLM opcional (VITE_LLM_API_KEY) con fallback local.
+// Motor del agente (Rol 1). Búsqueda local + IA conversacional con RAG (Gemini o Pollinations) y fallback local.
 import type {
   AgentRequest,
   AgentResponse,
@@ -116,8 +116,15 @@ export function haversineKm(a: Coordenadas, b: Coordenadas): number {
   return 2 * RADIO_TIERRA_KM * Math.asin(Math.min(1, Math.sqrt(h)));
 }
 
+/** Punto exacto (lat,lng), p. ej. la ubicación de la persona usuaria. */
 export function urlGoogleMaps(m: Pick<ModuloAtencion, 'lat' | 'lng'>): string {
   return `https://www.google.com/maps/search/?api=1&query=${m.lat},${m.lng}`;
+}
+
+/** URL universal de Google Maps para un módulo, buscada por nombre y dirección. */
+export function urlGoogleMapsModulo(m: ModuloAtencion): string {
+  const q = encodeURIComponent(`${m.nombre} ${m.direccion} ${m.alcaldia} CDMX`);
+  return `https://www.google.com/maps/search/?api=1&query=${q}`;
 }
 
 /** Módulo de las 16 alcaldías más cercano a unas coordenadas. */
@@ -131,7 +138,7 @@ export function moduloMasCercano(coords: Coordenadas): ModuloCercano {
       mejorKm = km;
     }
   }
-  return { modulo: mejor, distanciaKm: mejorKm, mapsUrl: urlGoogleMaps(mejor) };
+  return { modulo: mejor, distanciaKm: mejorKm, mapsUrl: urlGoogleMapsModulo(mejor) };
 }
 
 function moduloDeAlcaldia(alcaldia: AlcaldiaCDMX, coords?: Coordenadas): ModuloCercano {
@@ -139,7 +146,7 @@ function moduloDeAlcaldia(alcaldia: AlcaldiaCDMX, coords?: Coordenadas): ModuloC
   return {
     modulo,
     distanciaKm: coords ? haversineKm(coords, modulo) : undefined,
-    mapsUrl: urlGoogleMaps(modulo),
+    mapsUrl: urlGoogleMapsModulo(modulo),
   };
 }
 
@@ -330,12 +337,20 @@ export function procesarConsulta(req: AgentRequest): AgentResponse {
 }
 
 // ---------------------------------------------------------------------------
-// Punto de entrada del chat: consulta o entrenamiento
+// Punto de entrada del chat: consulta, conversación o entrenamiento
 // ---------------------------------------------------------------------------
+export type ProveedorIA = 'gemini' | 'pollinations';
+
 export type ResultadoMensaje =
-  | { tipo: 'consulta'; respuesta: AgentResponse }
+  | { tipo: 'consulta'; respuesta: AgentResponse; proveedorIA?: ProveedorIA }
+  | { tipo: 'conversacion'; texto: string; proveedorIA?: ProveedorIA }
   | { tipo: 'entrenamiento'; texto: string; tramiteId: string; requisito: string }
   | { tipo: 'entrenamiento-sin-tramite'; texto: string };
+
+export interface TurnoChat {
+  rol: 'usuario' | 'bot';
+  texto: string;
+}
 
 export const TEXTO_ENTRENAMIENTO_OK =
   '✅ ¡Entrenamiento completado! Guardé tu reporte en mi memoria colectiva. A partir de este segundo, a cualquier ciudadano que pregunte por este trámite le advertiré sobre este requisito.';
@@ -343,6 +358,7 @@ export const TEXTO_ENTRENAMIENTO_OK =
 let contador = 0;
 const nuevoId = () => `msg-${Date.now().toString(36)}-${(contador++).toString(36)}`;
 
+/** Parte local: entrenamiento ciudadano o identificación del trámite (para las tarjetas). */
 export function procesarMensaje(
   texto: string,
   alcaldia: AlcaldiaCDMX,
@@ -377,61 +393,244 @@ export function procesarMensaje(
 }
 
 // ---------------------------------------------------------------------------
-// LLM opcional (VITE_LLM_API_KEY). Solo clasifica el trámite si el motor local no lo encontró.
-// Nota: una clave en el frontend queda expuesta; usar solo para la demo.
+// IA conversacional con RAG: cada consulta se responde con un modelo real
+// usando como contexto los datos oficiales, la alcaldía y la memoria colectiva.
+// Orden: Gemini (si hay API key) -> Pollinations (sin llave) -> texto local.
 // ---------------------------------------------------------------------------
-async function clasificarConLLM(texto: string): Promise<string | null> {
-  const env = (import.meta as unknown as { env?: Record<string, string | undefined> }).env ?? {};
-  const clave = env.VITE_LLM_API_KEY;
-  if (!clave) return null;
-  const url = env.VITE_LLM_API_URL ?? 'https://api.openai.com/v1/chat/completions';
-  const modelo = env.VITE_LLM_MODEL ?? 'gpt-4o-mini';
-  const ids = TRAMITES.map((t) => t.id);
+const CLAVE_GEMINI = 'GEMINI_API_KEY';
+const URL_POLLINATIONS = 'https://text.pollinations.ai/openai';
+const TIMEOUT_IA_MS = 20000;
+
+export function leerGeminiKey(): string {
   try {
-    const ctl = new AbortController();
-    const timer = setTimeout(() => ctl.abort(), 5000);
-    const r = await fetch(url, {
-      method: 'POST',
-      signal: ctl.signal,
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${clave}` },
-      body: JSON.stringify({
-        model: modelo,
-        temperature: 0,
-        messages: [
-          {
-            role: 'system',
-            content: `Clasifica la consulta de un ciudadano de la CDMX. Responde SOLO con uno de estos ids o "ninguno": ${ids.join(', ')}.`,
-          },
-          { role: 'user', content: texto },
-        ],
-      }),
-    });
+    const guardada = almacen()?.getItem(CLAVE_GEMINI);
+    if (guardada) return guardada;
+  } catch {
+    /* ignorar */
+  }
+  const env = (import.meta as unknown as { env?: Record<string, string | undefined> }).env ?? {};
+  return env.VITE_GEMINI_API_KEY ?? '';
+}
+
+export function guardarGeminiKey(clave: string): void {
+  try {
+    const limpia = clave.trim();
+    if (limpia) almacen()?.setItem(CLAVE_GEMINI, limpia);
+    else almacen()?.removeItem(CLAVE_GEMINI);
+  } catch {
+    /* ignorar */
+  }
+}
+
+function resumenTramite(t: TramiteRecord, aprendido: string[]) {
+  const extras = EXTRAS_TRAMITE[t.id];
+  return {
+    id: t.id,
+    nombre: t.nombreTramite,
+    dependencia: t.dependencia,
+    modalidad: t.modalidad,
+    requiereLlaveCDMX: t.requiereLlaveCDMX,
+    costoOficial: formatearCosto(t.costoMXN),
+    resumen: t.resumenCiudadano,
+    pasos: t.pasosAccion,
+    documentosOficiales: t.documentosRequeridos,
+    requisitosAprendidosDeCiudadanos_noOficiales: aprendido,
+    tiempo: t.tiempoResolucion,
+    fundamentoNormativo: t.fundamentoNormativo,
+    variantes: extras?.variantes ?? [],
+    enlacesOficiales: (extras?.pasosOficiales ?? []).flatMap((p) => p.enlaces),
+  };
+}
+
+export function construirSystemPrompt(
+  foco: TramiteRecord | null,
+  alcaldia: AlcaldiaCDMX,
+  coordenadas?: Coordenadas,
+): string {
+  const memoria = leerMemoria();
+  const modulo = coordenadas ? moduloMasCercano(coordenadas) : moduloDeAlcaldia(alcaldia);
+  const catalogo = TRAMITES.map(
+    (t) => `- ${t.id}: ${t.nombreTramite} (${formatearCosto(t.costoMXN)})`,
+  ).join('\n');
+  const hoy = new Date().toLocaleDateString('es-MX', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+  return [
+    'Eres TrámiBot CDMX, asistente de trámites de la Ciudad de México. Hablas español de México, claro y cálido, sin jerga técnica.',
+    `Fecha de hoy: ${hoy}. Alcaldía de la persona: ${alcaldia}.`,
+    'REGLAS:',
+    '1. Responde DIRECTAMENTE la pregunta específica de la persona (si pregunta por un horario, un documento, un caso especial o "cómo le hago", contesta eso, no repitas una ficha genérica).',
+    '2. Usa SOLO los DATOS OFICIALES de abajo para costos, requisitos, fechas y enlaces. No inventes montos, horarios ni requisitos. Si el dato no está, dilo y recomienda confirmarlo en el portal oficial o en tu cita.',
+    '3. Si el tema es la licencia permanente, usa solo el trámite "licencia-permanente"; si es la de 3 años, usa "licencia-tipo-a". No las mezcles.',
+    '4. Los requisitos de "requisitosAprendidosDeCiudadanos_noOficiales" los reportaron otros ciudadanos: menciónalos como advertencia ("otros ciudadanos reportaron...") y no como regla oficial.',
+    '5. Responde en 2 a 4 oraciones (máximo 90 palabras), texto plano sin markdown, listas ni tablas: los pasos, documentos y enlaces ya se muestran en tarjetas debajo de tu respuesta, no los repitas completos. No pidas la Llave CDMX ni datos personales sensibles. Nunca aconsejes pagar a gestores o "coyotes".',
+    `MÓDULO DE REFERENCIA: ${modulo.modulo.nombre}, ${modulo.modulo.direccion}. Horario: ${modulo.modulo.horario}.${
+      modulo.distanciaKm !== undefined ? ` Está a ${modulo.distanciaKm.toFixed(1)} km de la persona.` : ''
+    }`,
+    `CATÁLOGO DE TRÁMITES:\n${catalogo}`,
+    foco
+      ? `DATOS OFICIALES DEL TRÁMITE EN FOCO (JSON):\n${JSON.stringify(
+          resumenTramite(foco, memoria[foco.id] ?? []),
+        )}`
+      : 'No hay un trámite en foco: si la pregunta no encaja en el catálogo, dilo y sugiere cuáles puedes ayudar a resolver.',
+  ].join('\n');
+}
+
+/** Quita espacios invisibles raros y márgenes de la salida del modelo. */
+function limpiarTexto(t?: string): string {
+  return (t ?? '').replace(/[\u00a0\u202f\u2009\u200b]/g, ' ').trim();
+}
+
+async function fetchConTimeout(url: string, init: RequestInit): Promise<Response> {
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), TIMEOUT_IA_MS);
+  try {
+    return await fetch(url, { ...init, signal: ctl.signal });
+  } finally {
     clearTimeout(timer);
+  }
+}
+
+async function llamarGemini(
+  clave: string,
+  system: string,
+  historial: TurnoChat[],
+  consulta: string,
+): Promise<string | null> {
+  try {
+    const contents = [
+      ...historial.map((h) => ({
+        role: h.rol === 'usuario' ? 'user' : 'model',
+        parts: [{ text: h.texto }],
+      })),
+      { role: 'user', parts: [{ text: consulta }] },
+    ];
+    const r = await fetchConTimeout(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${clave}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: system }] },
+          contents,
+          generationConfig: {
+            temperature: 0.4,
+            maxOutputTokens: 1024,
+            thinkingConfig: { thinkingBudget: 0 },
+          },
+        }),
+      },
+    );
     if (!r.ok) return null;
-    const data = (await r.json()) as { choices?: { message?: { content?: string } }[] };
-    const salida = data.choices?.[0]?.message?.content?.trim().toLowerCase() ?? '';
-    return ids.find((id) => salida.includes(id)) ?? null;
+    const data = (await r.json()) as {
+      candidates?: { content?: { parts?: { text?: string }[] } }[];
+    };
+    const texto = limpiarTexto(data.candidates?.[0]?.content?.parts?.map((p) => p.text ?? '').join(''));
+    return texto || null;
   } catch {
     return null;
   }
 }
 
-/** Igual que procesarMensaje, pero usa el LLM (si hay clave) cuando el motor local no entiende. */
+async function llamarPollinations(
+  system: string,
+  historial: TurnoChat[],
+  consulta: string,
+  reintento = true,
+): Promise<string | null> {
+  try {
+    const r = await fetchConTimeout(URL_POLLINATIONS, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'openai',
+        messages: [
+          { role: 'system', content: system },
+          ...historial.map((h) => ({
+            role: h.rol === 'usuario' ? 'user' : 'assistant',
+            content: h.texto,
+          })),
+          { role: 'user', content: consulta },
+        ],
+      }),
+    });
+    if (!r.ok) {
+      // El servicio gratuito limita a 1 respuesta cada ~45 s por IP: se espera y se reintenta una vez.
+      if (reintento && (r.status === 402 || r.status === 429)) {
+        const detalle = await r.text();
+        const espera = Number(/retry after (\d+)s/i.exec(detalle)?.[1] ?? 0);
+        if (espera > 0 && espera <= 20) {
+          await new Promise((res) => setTimeout(res, (espera + 1) * 1000));
+          return llamarPollinations(system, historial, consulta, false);
+        }
+      }
+      return null;
+    }
+    const data = (await r.json()) as { choices?: { message?: { content?: string } }[] };
+    const texto = limpiarTexto(data.choices?.[0]?.message?.content);
+    return texto || null;
+  } catch {
+    return null;
+  }
+}
+
+export async function generarRespuestaIA(
+  consulta: string,
+  foco: TramiteRecord | null,
+  alcaldia: AlcaldiaCDMX,
+  coordenadas: Coordenadas | undefined,
+  historial: TurnoChat[],
+): Promise<{ texto: string; proveedor: ProveedorIA } | null> {
+  const system = construirSystemPrompt(foco, alcaldia, coordenadas);
+  // Gemini exige que la conversación empiece con un turno de la persona.
+  const recientes = historial.slice(-6);
+  while (recientes.length > 0 && recientes[0].rol === 'bot') recientes.shift();
+
+  const clave = leerGeminiKey();
+  if (clave) {
+    const texto = await llamarGemini(clave, system, recientes, consulta);
+    if (texto) return { texto, proveedor: 'gemini' };
+  }
+  const texto = await llamarPollinations(system, recientes, consulta);
+  return texto ? { texto, proveedor: 'pollinations' } : null;
+}
+
+/**
+ * Flujo completo del chat: entrenamiento local, o consulta con IA + RAG.
+ * Si la IA no responde, se usa el texto local del trámite.
+ */
 export async function procesarMensajeAsync(
   texto: string,
   alcaldia: AlcaldiaCDMX,
   coordenadas?: Coordenadas,
+  historial: TurnoChat[] = [],
 ): Promise<ResultadoMensaje> {
   const local = procesarMensaje(texto, alcaldia, coordenadas);
-  if (local.tipo !== 'consulta' || local.respuesta.tramiteId) return local;
-  const id = await clasificarConLLM(texto);
-  const tramite = TRAMITES.find((t) => t.id === id);
-  if (!tramite) return local;
-  return {
-    tipo: 'consulta',
-    respuesta: armarRespuesta(
-      { id: local.respuesta.id, consultaCiudadana: texto, alcaldia, coordenadas },
-      tramite,
-    ),
-  };
+  if (local.tipo !== 'consulta') return local;
+
+  const resp = local.respuesta;
+  const encontrado = Boolean(resp.tramiteId);
+  // Sin coincidencia directa (p. ej. "¿puedo ir el sábado?") se usa el último trámite consultado.
+  const foco = TRAMITES.find((t) => t.id === (resp.tramiteId ?? leerUltimo())) ?? null;
+
+  const ia = await generarRespuestaIA(texto, foco, alcaldia, coordenadas, historial);
+  if (!ia) {
+    if (encontrado) return local;
+    return {
+      tipo: 'conversacion',
+      texto:
+        'En este momento no pude consultar a la IA para responder tu pregunta específica. Intenta de nuevo en unos segundos, o pega una Gemini API Key en el botón ⚡ de arriba para respuestas sin límite.',
+    };
+  }
+
+  if (encontrado) {
+    return {
+      tipo: 'consulta',
+      respuesta: { ...resp, resumenCiudadano: ia.texto },
+      proveedorIA: ia.proveedor,
+    };
+  }
+  return { tipo: 'conversacion', texto: ia.texto, proveedorIA: ia.proveedor };
 }

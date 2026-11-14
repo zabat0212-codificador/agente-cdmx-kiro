@@ -102,9 +102,16 @@ Plan en TypeScript para construir la SPA Vite + React + TailwindCSS. Orden: inst
     - _Requirements: 8.1, 9.3, 12.1_
   - [x] 13.2 Cuatro casos de demo en `demoCases.ts`
     - _Requirements: 12.1_
-- [x] 14. Verificación y publicación
-  - [x] 14.1 `npx tsc --noEmit` y `npm run build` sin errores
-  - [x] 14.2 Commit y push a `origin/main`
+- [x] 14. IA conversacional con RAG, Licencia Permanente y links oficiales
+  - [x] 14.1 `generarRespuestaIA` (Gemini / Pollinations) con contexto de `cdmxData`, alcaldía y memoria colectiva
+    - _Requirements: 11.2_
+  - [x] 14.2 Licencia Permanente CDMX separada de la Tipo A de 3 años
+    - _Requirements: 11.3_
+  - [x] 14.3 URLs oficiales únicas y botón de Google Maps por módulo; botón de API Key en el header
+    - _Requirements: 11.4_
+- [x] 15. Verificación y publicación
+  - [x] 15.1 `npx tsc --noEmit` y `npm run build` sin errores
+  - [x] 15.2 Commit y push a `origin/main`
 
 ## Task Dependency Graph
 

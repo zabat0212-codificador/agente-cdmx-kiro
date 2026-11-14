@@ -142,7 +142,9 @@ TrámiBot CDMX es una aplicación web (Agente Ciudadano de Trámites de la CDMX)
 #### Acceptance Criteria
 
 1. THE agentEngine SHALL normalizar acentos, modismos y tolerar errores de dedo.
-2. WHERE exista `VITE_LLM_API_KEY`, THE agentEngine SHALL usar el LLM solo si el motor local no identifica el trámite, y SHALL conservar el resultado local si el LLM falla.
+2. THE agentEngine SHALL responder cada consulta con un modelo de IA (Gemini si hay API key en `localStorage` o `VITE_GEMINI_API_KEY`; si no, el endpoint gratuito de Pollinations) usando como contexto (RAG) los datos de `cdmxData`, la alcaldía y la memoria colectiva, y SHALL usar el texto local del trámite si la IA no responde.
+3. THE cdmxData SHALL distinguir la Licencia Tipo A de 3 años ($1,142.00 MXN) de la Licencia Permanente ($1,500.00 MXN, examen teórico digital para primera vez).
+4. THE enlaces SHALL abrir con `target="_blank" rel="noopener noreferrer"` y usar solo las URLs oficiales definidas en `URL_OFICIALES`.
 
 ### Requirement 12: Demo de 3 minutos
 

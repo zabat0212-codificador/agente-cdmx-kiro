@@ -4,9 +4,12 @@ import { ALCALDIAS, UP_MIXCOAC } from '../data/cdmxData';
 import { DEMO_CASES, type DemoCase } from '../data/demoCases';
 import {
   borrarMemoria,
+  guardarGeminiKey,
+  leerGeminiKey,
   moduloMasCercano,
   procesarMensajeAsync,
   urlGoogleMaps,
+  type ProveedorIA,
 } from '../agent/agentEngine';
 
 const GUINDA = '#9F2241';
@@ -17,8 +20,15 @@ interface Mensaje {
   rol: 'usuario' | 'bot';
   texto?: string;
   respuesta?: AgentResponse;
-  nota?: string;
+  /** Modelo que generó el texto; undefined = texto local (la IA no respondió). */
+  proveedorIA?: ProveedorIA;
+  esIA?: boolean;
 }
+
+const ETIQUETA_IA: Record<ProveedorIA, string> = {
+  gemini: '✨ Respuesta generada con IA (Gemini)',
+  pollinations: '✨ Respuesta generada con IA',
+};
 
 const esperar = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 let seq = 0;
@@ -345,6 +355,9 @@ export function DashboardCiudadano() {
   const [mensajes, setMensajes] = useState<Mensaje[]>([SALUDO]);
   const [entrada, setEntrada] = useState('');
   const [pendiente, setPendiente] = useState(false);
+  const [tieneKey, setTieneKey] = useState<boolean>(() => Boolean(leerGeminiKey()));
+  const [panelKey, setPanelKey] = useState(false);
+  const [keyEntrada, setKeyEntrada] = useState('');
   const finRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -404,9 +417,12 @@ export function DashboardCiudadano() {
           alc = r.alcaldia;
           c = r.coords;
         }
+        const historial = mensajes
+          .filter((m) => m.texto && m.id !== 'saludo')
+          .map((m) => ({ rol: m.rol, texto: m.texto as string }));
         const [res] = await Promise.all([
-          procesarMensajeAsync(t, alc, c ?? undefined),
-          esperar(1400),
+          procesarMensajeAsync(t, alc, c ?? undefined, historial),
+          esperar(1000),
         ]);
         const nuevo: Mensaje =
           res.tipo === 'consulta'
@@ -415,8 +431,18 @@ export function DashboardCiudadano() {
                 rol: 'bot',
                 texto: res.respuesta.resumenCiudadano,
                 respuesta: res.respuesta,
+                proveedorIA: res.proveedorIA,
+                esIA: Boolean(res.proveedorIA),
               }
-            : { id: nuevoId(), rol: 'bot', texto: res.texto };
+            : res.tipo === 'conversacion'
+              ? {
+                  id: nuevoId(),
+                  rol: 'bot',
+                  texto: res.texto,
+                  proveedorIA: res.proveedorIA,
+                  esIA: true,
+                }
+              : { id: nuevoId(), rol: 'bot', texto: res.texto };
         setMensajes((m) => [...m, nuevo]);
       } catch {
         setMensajes((m) => [
@@ -431,7 +457,7 @@ export function DashboardCiudadano() {
         setPendiente(false);
       }
     },
-    [alcaldia, coords, detectarUbicacion, pendiente],
+    [alcaldia, coords, detectarUbicacion, mensajes, pendiente],
   );
 
   const onSubmit = (e: FormEvent) => {
@@ -466,8 +492,60 @@ export function DashboardCiudadano() {
               Tu agente ciudadano de trámites · sin coyotes, sin filas innecesarias
             </p>
           </div>
-          <div className="h-1 w-16 rounded" style={{ backgroundColor: DORADO }} aria-hidden="true" />
+          <button
+            type="button"
+            onClick={() => setPanelKey((v) => !v)}
+            aria-expanded={panelKey}
+            className="rounded-full border border-white/50 px-3 py-1 text-xs font-semibold text-white hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2"
+          >
+            {tieneKey ? '⚡ IA Gemini activa (Configurar Key)' : '⚡ IA Conectada (Configurar Key)'}
+          </button>
         </div>
+        {panelKey && (
+          <form
+            className="mx-auto mt-3 flex max-w-3xl flex-wrap items-center gap-2 rounded-lg bg-white/10 p-3"
+            onSubmit={(e) => {
+              e.preventDefault();
+              guardarGeminiKey(keyEntrada);
+              setTieneKey(Boolean(keyEntrada.trim()));
+              setKeyEntrada('');
+              setPanelKey(false);
+            }}
+          >
+            <label htmlFor="gemini-key" className="text-xs">
+              Gemini API Key (opcional; sin ella el bot usa un modelo gratuito)
+            </label>
+            <input
+              id="gemini-key"
+              type="password"
+              value={keyEntrada}
+              onChange={(e) => setKeyEntrada(e.target.value)}
+              placeholder="Pega tu API Key"
+              autoComplete="off"
+              className="min-w-0 flex-1 rounded-md px-2 py-1 text-sm text-gray-900"
+            />
+            <button
+              type="submit"
+              className="rounded-md px-3 py-1 text-sm font-semibold text-white"
+              style={{ backgroundColor: DORADO }}
+            >
+              Guardar
+            </button>
+            {tieneKey && (
+              <button
+                type="button"
+                onClick={() => {
+                  guardarGeminiKey('');
+                  setTieneKey(Boolean(leerGeminiKey()));
+                  setPanelKey(false);
+                }}
+                className="text-xs underline"
+              >
+                Quitar key
+              </button>
+            )}
+          </form>
+        )}
       </header>
 
       <div className="border-b bg-white px-4 py-3">
@@ -561,9 +639,17 @@ export function DashboardCiudadano() {
                   🤖
                 </span>
                 <div className="min-w-0 max-w-[92%] flex-1">
-                  <p className="inline-block rounded-2xl rounded-tl-sm border border-gray-200 bg-white px-4 py-2 text-sm text-gray-900 shadow-sm">
+                  <p className="inline-block whitespace-pre-line rounded-2xl rounded-tl-sm border border-gray-200 bg-white px-4 py-2 text-sm text-gray-900 shadow-sm">
                     {m.texto}
                   </p>
+                  {m.proveedorIA && (
+                    <p className="mt-1 text-xs text-gray-500">{ETIQUETA_IA[m.proveedorIA]}</p>
+                  )}
+                  {m.respuesta && !m.proveedorIA && (
+                    <p className="mt-1 text-xs text-gray-500">
+                      Respuesta de la base local (la IA no estuvo disponible)
+                    </p>
+                  )}
                   {m.respuesta && (
                     <TarjetaTramite
                       r={m.respuesta}
