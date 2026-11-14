@@ -1,15 +1,18 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
-import type { AgentResponse, AlcaldiaCDMX, Coordenadas } from '../types/contract';
-import { ALCALDIAS, UP_MIXCOAC } from '../data/cdmxData';
+import type {
+  AgentResponse,
+  AlcaldiaCDMX,
+  CategoriaExplorador,
+  Coordenadas,
+  SubTramite,
+} from '../types/contract';
+import { ALCALDIAS, CATEGORIAS_EXPLORADOR, UP_MIXCOAC } from '../data/cdmxData';
 import { DEMO_CASES, type DemoCase } from '../data/demoCases';
 import {
   borrarMemoria,
-  guardarGeminiKey,
-  leerGeminiKey,
   moduloMasCercano,
   procesarMensajeAsync,
   urlGoogleMaps,
-  type ProveedorIA,
 } from '../agent/agentEngine';
 
 const GUINDA = '#9F2241';
@@ -20,15 +23,7 @@ interface Mensaje {
   rol: 'usuario' | 'bot';
   texto?: string;
   respuesta?: AgentResponse;
-  /** Modelo que generó el texto; undefined = texto local (la IA no respondió). */
-  proveedorIA?: ProveedorIA;
-  esIA?: boolean;
 }
-
-const ETIQUETA_IA: Record<ProveedorIA, string> = {
-  gemini: '✨ Respuesta generada con IA (Gemini)',
-  pollinations: '✨ Respuesta generada con IA',
-};
 
 const esperar = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 let seq = 0;
@@ -38,7 +33,7 @@ const SALUDO: Mensaje = {
   id: 'saludo',
   rol: 'bot',
   texto:
-    '¡Hola! Soy TrámiBot CDMX. Dime qué trámite necesitas, con tus palabras (licencia, uso de suelo, abrir un negocio, actas, reportes). Te doy la ruta oficial, tus documentos, el costo real y el módulo más cercano. Si ya fuiste a ventanilla y te pidieron algo extra, cuéntamelo y lo aprendo.',
+    '¡Hola! Soy TrámiBot CDMX. Elige una categoría arriba o escríbeme tu duda con tus palabras (licencia, verificación, agua, predial, uso de suelo, INE, mis 18 años...). Te doy la ruta oficial, tus documentos, el costo real y el módulo más cercano. Si ya fuiste a ventanilla y te pidieron algo extra, cuéntamelo y lo aprendo.',
 };
 
 /* ------------------------------ Tarjetas ------------------------------ */
@@ -84,8 +79,8 @@ function TarjetaModulo({ r }: { r: AgentResponse }) {
         </a>
       </div>
       <p className="mt-2 text-xs text-gray-500">
-        Sede de referencia en tu Alcaldía (confirma el módulo específico asignado al generar tu cita
-        oficial)
+        {r.notaModulo ??
+          'Sede de referencia en tu Alcaldía (confirma el módulo específico asignado al generar tu cita oficial)'}
       </p>
     </div>
   );
@@ -346,6 +341,89 @@ function TarjetaTramite({
   );
 }
 
+/* ------------------------------ Explorador ------------------------------ */
+
+function Explorador({
+  deshabilitado,
+  onElegir,
+}: {
+  deshabilitado: boolean;
+  onElegir: (s: SubTramite) => void;
+}) {
+  const [abierta, setAbierta] = useState<string | null>(null);
+  const categoria: CategoriaExplorador | undefined = CATEGORIAS_EXPLORADOR.find(
+    (c) => c.id === abierta,
+  );
+  return (
+    <section aria-label="Catálogo de trámites">
+      <p className="text-xs font-bold uppercase tracking-wide text-gray-500">
+        ¿Qué trámite necesitas?
+      </p>
+      <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5" role="tablist">
+        {CATEGORIAS_EXPLORADOR.map((c) => {
+          const activa = c.id === abierta;
+          return (
+            <button
+              key={c.id}
+              type="button"
+              role="tab"
+              aria-selected={activa}
+              onClick={() => setAbierta(activa ? null : c.id)}
+              className="relative rounded-xl border-2 px-3 py-2 text-left transition hover:shadow focus-visible:outline-none focus-visible:ring-2"
+              style={{
+                borderColor: activa || c.destacada ? DORADO : '#E5E7EB',
+                backgroundColor: activa ? GUINDA : c.destacada ? '#FBF6EC' : '#FFFFFF',
+                color: activa ? '#FFFFFF' : '#1F2937',
+              }}
+            >
+              {c.insignia && (
+                <span
+                  className="absolute -top-2 right-2 rounded-full px-2 py-0.5 text-[10px] font-bold text-white"
+                  style={{ backgroundColor: GUINDA }}
+                >
+                  {c.insignia}
+                </span>
+              )}
+              <span className="block text-xl" aria-hidden="true">
+                {c.icono}
+              </span>
+              <span className="block text-sm font-bold leading-tight">{c.titulo}</span>
+              <span
+                className="block text-xs leading-snug"
+                style={{ color: activa ? '#F3E2C2' : '#6B7280' }}
+              >
+                {c.descripcion}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+      {categoria && (
+        <div
+          role="tabpanel"
+          className="mt-3 grid grid-cols-1 gap-2 rounded-xl border bg-gray-50 p-3 sm:grid-cols-2"
+          style={{ borderColor: DORADO }}
+        >
+          {categoria.subtramites.map((st) => (
+            <button
+              key={st.tramiteId}
+              type="button"
+              disabled={deshabilitado}
+              onClick={() => onElegir(st)}
+              className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-left hover:border-[#BC955C] hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 disabled:opacity-50"
+            >
+              <span className="block text-sm font-semibold" style={{ color: GUINDA }}>
+                {st.etiqueta}
+              </span>
+              <span className="block text-xs text-gray-600">{st.detalle}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
 /* ------------------------------ Dashboard ------------------------------ */
 
 export function DashboardCiudadano() {
@@ -355,9 +433,6 @@ export function DashboardCiudadano() {
   const [mensajes, setMensajes] = useState<Mensaje[]>([SALUDO]);
   const [entrada, setEntrada] = useState('');
   const [pendiente, setPendiente] = useState(false);
-  const [tieneKey, setTieneKey] = useState<boolean>(() => Boolean(leerGeminiKey()));
-  const [panelKey, setPanelKey] = useState(false);
-  const [keyEntrada, setKeyEntrada] = useState('');
   const finRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -372,7 +447,7 @@ export function DashboardCiudadano() {
     setEstadoGPS(
       origen === 'gps'
         ? `📍 Ubicación detectada: módulo más cercano en ${cercano.modulo.alcaldia} (${(cercano.distanciaKm ?? 0).toFixed(1)} km)`
-        : `📍 ${aviso ?? 'Usando ubicación de respaldo (UP Mixcoac)'}: módulo más cercano en ${cercano.modulo.alcaldia} (${(cercano.distanciaKm ?? 0).toFixed(1)} km)`,
+        : `📍 ${aviso ?? 'Usando ubicación de referencia (UP Mixcoac)'}: módulo más cercano en ${cercano.modulo.alcaldia} (${(cercano.distanciaKm ?? 0).toFixed(1)} km)`,
     );
     return { coords: c, alcaldia: cercano.modulo.alcaldia };
   }, []);
@@ -403,7 +478,7 @@ export function DashboardCiudadano() {
   );
 
   const enviar = useCallback(
-    async (texto: string, demo?: DemoCase) => {
+    async (texto: string, opciones?: { demo?: DemoCase; tramiteId?: string }) => {
       const t = texto.trim();
       if (!t || pendiente) return;
       setMensajes((m) => [...m, { id: nuevoId(), rol: 'usuario', texto: t }]);
@@ -412,7 +487,7 @@ export function DashboardCiudadano() {
       try {
         let alc = alcaldia;
         let c = coords;
-        if (demo?.usaGPS && !c) {
+        if (opciones?.demo?.usaGPS && !c) {
           const r = await detectarUbicacion();
           alc = r.alcaldia;
           c = r.coords;
@@ -421,28 +496,13 @@ export function DashboardCiudadano() {
           .filter((m) => m.texto && m.id !== 'saludo')
           .map((m) => ({ rol: m.rol, texto: m.texto as string }));
         const [res] = await Promise.all([
-          procesarMensajeAsync(t, alc, c ?? undefined, historial),
+          procesarMensajeAsync(t, alc, c ?? undefined, historial, opciones?.tramiteId),
           esperar(1000),
         ]);
         const nuevo: Mensaje =
           res.tipo === 'consulta'
-            ? {
-                id: nuevoId(),
-                rol: 'bot',
-                texto: res.respuesta.resumenCiudadano,
-                respuesta: res.respuesta,
-                proveedorIA: res.proveedorIA,
-                esIA: Boolean(res.proveedorIA),
-              }
-            : res.tipo === 'conversacion'
-              ? {
-                  id: nuevoId(),
-                  rol: 'bot',
-                  texto: res.texto,
-                  proveedorIA: res.proveedorIA,
-                  esIA: true,
-                }
-              : { id: nuevoId(), rol: 'bot', texto: res.texto };
+            ? { id: nuevoId(), rol: 'bot', texto: res.respuesta.resumenCiudadano, respuesta: res.respuesta }
+            : { id: nuevoId(), rol: 'bot', texto: res.texto };
         setMensajes((m) => [...m, nuevo]);
       } catch {
         setMensajes((m) => [
@@ -485,88 +545,23 @@ export function DashboardCiudadano() {
   return (
     <div className="flex h-screen flex-col bg-gray-100 text-gray-900">
       <header className="px-4 py-3 text-white shadow" style={{ backgroundColor: GUINDA }}>
-        <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-2">
+        <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-2">
           <div>
             <h1 className="text-xl font-extrabold leading-tight">TrámiBot CDMX</h1>
             <p className="text-xs" style={{ color: '#F3E2C2' }}>
               Tu agente ciudadano de trámites · sin coyotes, sin filas innecesarias
             </p>
           </div>
-          <button
-            type="button"
-            onClick={() => setPanelKey((v) => !v)}
-            aria-expanded={panelKey}
-            className="rounded-full border border-white/50 px-3 py-1 text-xs font-semibold text-white hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2"
-          >
-            {tieneKey ? '⚡ IA Gemini activa (Configurar Key)' : '⚡ IA Conectada (Configurar Key)'}
-          </button>
+          <div className="h-1 w-16 rounded" style={{ backgroundColor: DORADO }} aria-hidden="true" />
         </div>
-        {panelKey && (
-          <form
-            className="mx-auto mt-3 flex max-w-3xl flex-wrap items-center gap-2 rounded-lg bg-white/10 p-3"
-            onSubmit={(e) => {
-              e.preventDefault();
-              guardarGeminiKey(keyEntrada);
-              setTieneKey(Boolean(keyEntrada.trim()));
-              setKeyEntrada('');
-              setPanelKey(false);
-            }}
-          >
-            <label htmlFor="gemini-key" className="text-xs">
-              Gemini API Key (opcional; sin ella el bot usa un modelo gratuito)
-            </label>
-            <input
-              id="gemini-key"
-              type="password"
-              value={keyEntrada}
-              onChange={(e) => setKeyEntrada(e.target.value)}
-              placeholder="Pega tu API Key"
-              autoComplete="off"
-              className="min-w-0 flex-1 rounded-md px-2 py-1 text-sm text-gray-900"
-            />
-            <button
-              type="submit"
-              className="rounded-md px-3 py-1 text-sm font-semibold text-white"
-              style={{ backgroundColor: DORADO }}
-            >
-              Guardar
-            </button>
-            {tieneKey && (
-              <button
-                type="button"
-                onClick={() => {
-                  guardarGeminiKey('');
-                  setTieneKey(Boolean(leerGeminiKey()));
-                  setPanelKey(false);
-                }}
-                className="text-xs underline"
-              >
-                Quitar key
-              </button>
-            )}
-          </form>
-        )}
       </header>
 
-      <div className="border-b bg-white px-4 py-3">
-        <div className="mx-auto max-w-3xl">
-          <p className="text-xs font-bold uppercase tracking-wide text-gray-500">
-            Demo en 1 clic
-          </p>
-          <div className="mt-2 grid max-h-44 grid-cols-1 gap-2 overflow-y-auto sm:max-h-none sm:grid-cols-2">
-            {DEMO_CASES.map((d) => (
-              <button
-                key={d.id}
-                type="button"
-                disabled={pendiente}
-                onClick={() => void enviar(d.mensaje, d)}
-                className="rounded-lg border px-3 py-2 text-left text-sm font-medium leading-snug hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 disabled:opacity-50"
-                style={{ borderColor: DORADO }}
-              >
-                {d.etiqueta}
-              </button>
-            ))}
-          </div>
+      <div className="max-h-[42vh] overflow-y-auto border-b bg-white px-4 py-3">
+        <div className="mx-auto max-w-4xl">
+          <Explorador
+            deshabilitado={pendiente}
+            onElegir={(st) => void enviar(st.consulta, { tramiteId: st.tramiteId })}
+          />
 
           <div className="mt-3 flex flex-wrap items-end gap-3">
             <div>
@@ -642,14 +637,6 @@ export function DashboardCiudadano() {
                   <p className="inline-block whitespace-pre-line rounded-2xl rounded-tl-sm border border-gray-200 bg-white px-4 py-2 text-sm text-gray-900 shadow-sm">
                     {m.texto}
                   </p>
-                  {m.proveedorIA && (
-                    <p className="mt-1 text-xs text-gray-500">{ETIQUETA_IA[m.proveedorIA]}</p>
-                  )}
-                  {m.respuesta && !m.proveedorIA && (
-                    <p className="mt-1 text-xs text-gray-500">
-                      Respuesta de la base local (la IA no estuvo disponible)
-                    </p>
-                  )}
                   {m.respuesta && (
                     <TarjetaTramite
                       r={m.respuesta}
@@ -679,7 +666,32 @@ export function DashboardCiudadano() {
         </div>
       </main>
 
-      <form onSubmit={onSubmit} className="border-t bg-white px-4 py-3">
+      <div className="border-t bg-white px-4 pt-2">
+        <details className="mx-auto max-w-3xl text-sm">
+          <summary
+            className="cursor-pointer select-none rounded-md px-2 py-1 text-xs font-semibold text-gray-600 hover:bg-gray-50"
+            style={{ color: GUINDA }}
+          >
+            🎯 Casos Rápidos (Entrenamiento y Pruebas)
+          </summary>
+          <div className="mt-2 grid max-h-40 grid-cols-1 gap-2 overflow-y-auto pb-2 sm:grid-cols-2">
+            {DEMO_CASES.map((d) => (
+              <button
+                key={d.id}
+                type="button"
+                disabled={pendiente}
+                onClick={() => void enviar(d.mensaje, { demo: d })}
+                className="rounded-lg border px-3 py-2 text-left text-xs font-medium leading-snug hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 disabled:opacity-50"
+                style={{ borderColor: DORADO }}
+              >
+                {d.etiqueta}
+              </button>
+            ))}
+          </div>
+        </details>
+      </div>
+
+      <form onSubmit={onSubmit} className="bg-white px-4 pb-3 pt-1">
         <div className="mx-auto flex max-w-3xl gap-2">
           <label htmlFor="mensaje" className="sr-only">
             Escribe tu mensaje
@@ -689,7 +701,7 @@ export function DashboardCiudadano() {
             ref={inputRef}
             value={entrada}
             onChange={(e) => setEntrada(e.target.value)}
-            placeholder="Escribe tu trámite, por ejemplo: quiero abrir una cafetería y que no me clausuren"
+            placeholder="Escribe tu duda, por ejemplo: ¿cuándo me toca verificar si mi placa termina en 5?"
             className="min-w-0 flex-1 rounded-full border border-gray-300 px-4 py-2 text-sm focus-visible:outline-none focus-visible:ring-2"
             autoComplete="off"
           />

@@ -109,9 +109,16 @@ Plan en TypeScript para construir la SPA Vite + React + TailwindCSS. Orden: inst
     - _Requirements: 11.3_
   - [x] 14.3 URLs oficiales únicas y botón de Google Maps por módulo; botón de API Key en el header
     - _Requirements: 11.4_
-- [x] 15. Verificación y publicación
-  - [x] 15.1 `npx tsc --noEmit` y `npm run build` sin errores
-  - [x] 15.2 Commit y push a `origin/main`
+- [x] 15. Catálogo masivo y explorador por categorías
+  - [x] 15.1 Ficha completa de 10 trámites nuevos en `cdmxData.ts` con links oficiales y consejos de fila
+    - _Requirements: 13.3_
+  - [x] 15.2 Explorador de 5 categorías y sub-trámites; casos rápidos en acordeón; API key fuera de la interfaz
+    - _Requirements: 13.1, 13.4, 13.5_
+  - [x] 15.3 Selección directa de trámite en el motor y respuesta con IA + RAG
+    - _Requirements: 13.2_
+- [x] 16. Verificación y publicación
+  - [x] 16.1 `npx tsc --noEmit` y `npm run build` sin errores
+  - [x] 16.2 Commit y push a `origin/main`
 
 ## Task Dependency Graph
 

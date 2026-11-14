@@ -109,4 +109,25 @@ export interface AgentResponse {
   /** Requisitos enseñados por otros ciudadanos (memoria colectiva, localStorage). */
   aprendidoCiudadanos?: string[];
   moduloCercano?: ModuloCercano;
+  /** Aclaración sobre el módulo (p. ej. INE o verificentros tienen sus propios módulos). */
+  notaModulo?: string;
+}
+
+/** Sub-trámite del explorador, listo para consultar en 1 clic. */
+export interface SubTramite {
+  tramiteId: string;
+  etiqueta: string;
+  detalle: string;
+  /** Pregunta que se envía al chat al hacer clic. */
+  consulta: string;
+}
+
+export interface CategoriaExplorador {
+  id: string;
+  icono: string;
+  titulo: string;
+  descripcion: string;
+  destacada?: boolean;
+  insignia?: string;
+  subtramites: SubTramite[];
 }

@@ -154,3 +154,15 @@ TrámiBot CDMX es una aplicación web (Agente Ciudadano de Trámites de la CDMX)
 
 1. THE Dashboard SHALL mostrar 4 botones: licencia con módulo cercano, uso de suelo comercial, entrenar al bot y volver a consultar licencia.
 
+### Requirement 13: Catálogo ampliado y explorador por categorías
+
+**User Story:** Como ciudadano, quiero explorar trámites por categoría y consultarlos en un clic, para resolver licencias, vehículo, casa, negocio y mis primeros trámites a los 18 años.
+
+#### Acceptance Criteria
+
+1. THE Dashboard SHALL mostrar un catálogo de 5 categorías (Licencias e Identificaciones, Autos, Casa, Negocios y Cumplí 18 años) que despliegan sus sub-trámites.
+2. WHEN el ciudadano elige un sub-trámite o escribe una duda, THE agente SHALL responder con IA y RAG y mostrar ruta paso a paso, checklist, módulo de su alcaldía y memoria colectiva.
+3. THE cdmxData SHALL incluir fichas con costo, pasos con links oficiales, documentos y consejos de fila para licencias especiales, permiso de menores, INE, verificación, refrendo y tenencia, infracciones, agua, predial, escrituras y la guía de 18 años.
+4. THE Dashboard SHALL ocultar cualquier configuración de API key; la llave se lee de `VITE_GEMINI_API_KEY`.
+5. THE casos rápidos de demostración SHALL permanecer en un acordeón discreto sobre el campo de chat.
+

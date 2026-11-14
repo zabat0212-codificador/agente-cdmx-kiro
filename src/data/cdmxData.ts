@@ -4,6 +4,7 @@
 import type {
   AgentResponse,
   AlcaldiaCDMX,
+  CategoriaExplorador,
   CategoriaTramite,
   ModuloAtencion,
   PasoOficial,
@@ -21,6 +22,8 @@ export interface TramiteRecord {
   pasosAccion: string[];
   documentosRequeridos: string[];
   costoMXN: number; // 0 = gratuito; el engine lo formatea a texto
+  /** Texto de costo cuando no es una cifra única (p. ej. "Desde $572.00 MXN"). */
+  costoTexto?: string;
   tiempoResolucion: string;
   fundamentoNormativo: string;
   alertaAnticorrupcion: string;
@@ -91,7 +94,7 @@ const DIRECCIONES_ALCALDIA: Record<AlcaldiaCDMX, string> = {
     'Alcaldía Xochimilco, Pino s/n esq. Guerrero, Barrio El Rosario, C.P. 16070, Ciudad de México',
 };
 
-export const TRAMITES: TramiteRecord[] = [
+const TRAMITES_BASE: TramiteRecord[] = [
   {
     id: 'apertura-negocio-bajo-impacto',
     nombreTramite: 'Aviso de apertura de establecimiento mercantil de bajo impacto',
@@ -318,14 +321,12 @@ export const TRAMITES: TramiteRecord[] = [
       'tarjeta del coche',
       'tarjeta del auto',
       'tarjeta del vehiculo',
-      'refrendo',
       'renovar tarjeta',
       'reposicion de tarjeta',
       'perdi la tarjeta',
       'me robaron la tarjeta',
       'papeles del carro',
       'papeles del coche',
-      'engomado',
       'circulacion vehicular',
     ],
   },
@@ -433,8 +434,6 @@ export const TRAMITES: TramiteRecord[] = [
       'acta de nacimento',
       'akta',
       'partida de nacimiento',
-      'curp',
-      'nacimiento',
     ],
   },
   {
@@ -544,6 +543,7 @@ export const UP_MIXCOAC = { lat: 19.3733, lng: -99.1834 };
 // ---------------------------------------------------------------------------
 export interface ExtrasTramite {
   variantes?: string[];
+  notaModulo?: string;
   pasosOficiales: PasoOficial[];
   radiografia: RadiografiaCallejera;
 }
@@ -558,6 +558,13 @@ export const URL_OFICIALES = {
   seduvi: 'https://www.seduvi.cdmx.gob.mx/',
   atencionCiudadana: 'https://atencionciudadana.cdmx.gob.mx/',
   registroCivil: 'https://www.rcivil.cdmx.gob.mx/',
+  ubicaModuloIne: 'https://ubicatumodulo.ine.mx/',
+  verificentros: 'https://verificentros.sedema.cdmx.gob.mx/',
+  estrados: 'https://estrados.cdmx.gob.mx/',
+  sacmex: 'https://aplicaciones.sacmex.cdmx.gob.mx/',
+  consejeria: 'https://consejeria.cdmx.gob.mx/',
+  sat: 'https://www.sat.gob.mx/',
+  sedena: 'https://www.gob.mx/sedena',
 } as const;
 
 const L = {
@@ -569,6 +576,13 @@ const L = {
   siapem: { etiqueta: '🏪 SIAPEM', url: URL_OFICIALES.siapem },
   actas: { etiqueta: '📄 Registro Civil CDMX', url: URL_OFICIALES.registroCivil },
   suac: { etiqueta: '📣 Atención Ciudadana / Locatel', url: URL_OFICIALES.atencionCiudadana },
+  ine: { etiqueta: '🪪 Ubica tu módulo INE', url: URL_OFICIALES.ubicaModuloIne },
+  verificentros: { etiqueta: '🌫️ Verificentros y citas (SEDEMA)', url: URL_OFICIALES.verificentros },
+  estrados: { etiqueta: '📋 Consulta de infracciones (Estrados)', url: URL_OFICIALES.estrados },
+  sacmex: { etiqueta: '💧 Servicios SACMEX', url: URL_OFICIALES.sacmex },
+  consejeria: { etiqueta: '📜 Consejería Jurídica (RPPC)', url: URL_OFICIALES.consejeria },
+  sat: { etiqueta: '🧾 SAT: RFC y e.firma', url: URL_OFICIALES.sat },
+  sedena: { etiqueta: '🎖️ Servicio Militar Nacional', url: URL_OFICIALES.sedena },
 };
 
 const FUENTE_RADIOGRAFIA =
@@ -821,3 +835,1052 @@ export const EXTRAS_TRAMITE: Record<string, ExtrasTramite> = {
     },
   },
 };
+
+// ===========================================================================
+// CATÁLOGO AMPLIADO: licencias especiales, menores, INE, vehículos, casa y guía de 18 años.
+// Cifras tomadas de fuentes oficiales y prensa 2026 (Finanzas CDMX, SEMOVI). Confirma el monto
+// vigente en tu línea de captura antes de pagar.
+// ===========================================================================
+const TRAMITES_NUEVOS: TramiteRecord[] = [
+  {
+    id: 'licencias-especiales',
+    nombreTramite: 'Licencias especiales: motociclistas (A1/A2), taxis (B), transporte (C, D y E)',
+    categoria: 'Movilidad y Vehículos (SEMOVI)',
+    dependencia: 'Secretaría de Movilidad (SEMOVI)',
+    requiereLlaveCDMX: true,
+    modalidad: 'Híbrido',
+    resumenCiudadano:
+      'Además de la licencia de auto, la CDMX tiene licencias por tipo de vehículo. Tipo A1: motocicleta ($572.00 MXN en 2026 según prensa). Tipo A2: automóvil y motocicleta ($1,142.00 MXN, 3 años). Tipo B: operadores de taxi. Tipo C: transporte de pasajeros ($2,553.00 MXN, 3 años según SEMOVI). Tipos D y E: carga y transporte especializado ($1,700.00 MXN a 2 años o $2,553.00 MXN a 3 años según SEMOVI). Las licencias de transporte son presenciales y piden documentos adicionales.',
+    pasosAccion: [
+      'Identifica tu tipo de licencia: A1 (moto), A2 (auto y moto), B (taxi), C (pasajeros), D (carga) o E (especializado).',
+      'Entra con tu Llave CDMX y genera la línea de captura del tipo que te corresponde.',
+      'Paga la línea de captura en línea, en bancos o en tiendas autorizadas.',
+      'Agenda tu cita en el Sistema de Citas de SEMOVI y elige un módulo.',
+      'Acude con tus originales; para tipos B, C, D y E lleva además los documentos de operador que pida SEMOVI.',
+    ],
+    documentosRequeridos: [
+      'Identificación oficial vigente con fotografía',
+      'Comprobante de domicilio reciente (máximo 3 meses)',
+      'CURP',
+      'Línea de captura pagada del tipo de licencia',
+      'Licencia anterior (en renovación o reposición)',
+      'Constancia o examen médico y documentos de operador (solo tipos B, C, D y E; SEMOVI indica la lista según el tipo)',
+    ],
+    costoMXN: 572,
+    costoTexto:
+      'A1: $572.00 MXN · A2: $1,142.00 MXN · C: $2,553.00 MXN · D/E: $1,700.00 (2 años) o $2,553.00 MXN (3 años). Tipo B: consulta tu línea de captura.',
+    tiempoResolucion: 'Se entrega en la cita en módulo; los tipos de transporte pueden pedir validaciones adicionales',
+    fundamentoNormativo:
+      'Ley de Movilidad de la Ciudad de México, Reglamento de Tránsito de la Ciudad de México y Código Fiscal de la Ciudad de México (derechos por licencias)',
+    alertaAnticorrupcion:
+      'Las cuotas las fija el Código Fiscal y se pagan solo con línea de captura. Ningún "gestor" de taxis o transporte puede garantizarte la licencia a cambio de dinero.',
+    impactoComunitario: {
+      poblacionObjetivo: 'Motociclistas, operadores de taxi y conductores de transporte público y de carga',
+      ahorroEstimado: 'Evita pagos a gestores y multas por conducir con la licencia equivocada',
+    },
+    palabrasClave: [
+      'licencia de moto',
+      'licencia para moto',
+      'licencia de motocicleta',
+      'licencia de motociclista',
+      'sacar licencia de moto',
+      'motocicleta',
+      'moto',
+      'a1',
+      'a2',
+      'licencia de taxi',
+      'licencia para taxi',
+      'taxista',
+      'taxi',
+      'tipo b',
+      'licencia tipo b',
+      'licencia tipo c',
+      'licencia tipo d',
+      'licencia tipo e',
+      'transporte publico',
+      'transporte de carga',
+      'licencia de carga',
+      'licencia de chofer',
+      'tarjeton',
+      'licencia especial',
+      'licencias especiales',
+      'licencia de camion',
+    ],
+  },
+  {
+    id: 'permiso-menores',
+    nombreTramite: 'Permiso de conducir para menores de edad (Tipo "P")',
+    categoria: 'Movilidad y Vehículos (SEMOVI)',
+    dependencia: 'Secretaría de Movilidad (SEMOVI)',
+    requiereLlaveCDMX: true,
+    modalidad: 'Presencial',
+    resumenCiudadano:
+      'El permiso Tipo "P" permite conducir a personas menores de edad (la primera vez se pide tener 16 años). Cuesta $508.00 MXN (clave 14). Debes aprobar un curso de manejo en una escuela certificada por SEMOVI, pagar la línea de captura y acudir con tu cita a un Módulo de Control Vehicular y Licencias con tu madre, padre o tutor.',
+    pasosAccion: [
+      'Toma y aprueba el curso de manejo en una escuela certificada por SEMOVI y guarda la constancia original.',
+      'Genera y paga la línea de captura de $508.00 MXN (clave 14).',
+      'Agenda tu cita en el Sistema de Citas de SEMOVI y elige un módulo.',
+      'Acude con tu madre, padre o tutor y todos los documentos en original y copia.',
+      'Toma de fotografía y firma, y recibe tu permiso en el módulo.',
+    ],
+    documentosRequeridos: [
+      'Identificación oficial vigente de la madre, padre o tutor (credencial para votar, pasaporte, cédula profesional o Cartilla del SMN)',
+      'Comprobante de domicilio de la CDMX o del Estado de México (máximo 3 meses) o credencial con domicilio completo',
+      'Constancia original del curso de manejo (escuela certificada por SEMOVI)',
+      'Acta de nacimiento de la persona menor de edad (sin tachaduras ni enmendaduras)',
+      'Identificación con fotografía de la persona menor (credencial escolar, pasaporte vigente o de dependencia oficial)',
+      'Línea de captura pagada ($508.00 MXN, clave 14)',
+      'Autorización de la madre, padre o tutor (confirma el formato exacto al generar tu cita)',
+    ],
+    costoMXN: 508,
+    tiempoResolucion: 'Se entrega el mismo día de la cita en el módulo',
+    fundamentoNormativo:
+      'Ley de Movilidad y Reglamento de Tránsito de la Ciudad de México; Código Fiscal de la Ciudad de México (derechos por permiso para menores)',
+    alertaAnticorrupcion:
+      'El costo oficial es $508.00 MXN con línea de captura. Verifica que tu escuela de manejo esté en la lista certificada de SEMOVI antes de pagar el curso.',
+    impactoComunitario: {
+      poblacionObjetivo: 'Adolescentes de 16 y 17 años y sus familias',
+      ahorroEstimado: 'Evita multas y retención del vehículo por manejar siendo menor sin permiso',
+    },
+    palabrasClave: [
+      'permiso de conducir para menores',
+      'permiso para menores',
+      'permiso de manejo para menores',
+      'licencia para menores',
+      'licencia de menor',
+      'licencia para adolescentes',
+      'menor de edad',
+      'menores de edad',
+      'permiso tipo p',
+      'mi hijo maneje',
+      'mi hijo quiere manejar',
+      'mi hija quiere manejar',
+      'manejar siendo menor',
+      '16 anos',
+      '17 anos',
+      '15 anos',
+      'curso de manejo',
+      'carta responsiva',
+    ],
+  },
+  {
+    id: 'ine',
+    nombreTramite: 'INE: credencial para votar (primera vez, reposición o cambio de domicilio)',
+    categoria: 'Identidad y Registro Civil',
+    dependencia: 'Instituto Nacional Electoral (INE)',
+    requiereLlaveCDMX: false,
+    modalidad: 'Presencial',
+    resumenCiudadano:
+      'La credencial para votar del INE es gratuita. Se tramita en un módulo del INE (no en la alcaldía) con cita: primera vez, reposición por pérdida o robo, y cambio de domicilio. Ubica el módulo más cercano en el sitio oficial del INE o llama a INETEL al 800 433 2000.',
+    pasosAccion: [
+      'Ubica tu módulo INE más cercano en ubicatumodulo.ine.mx.',
+      'Agenda tu cita por el medio que indique el INE (o por INETEL, 800 433 2000).',
+      'Reúne tus documentos originales y acude puntual a tu cita.',
+      'Captura de huellas, fotografía y firma en el módulo.',
+      'Recibe tu comprobante y tu credencial según el plazo que te indiquen.',
+    ],
+    documentosRequeridos: [
+      'Acta de nacimiento original (primera vez)',
+      'Identificación con fotografía (credencial escolar, pasaporte, cartilla u otra que acepte el INE)',
+      'Comprobante de domicilio reciente (máximo 3 meses)',
+      'CURP (recomendable llevarla)',
+      'Credencial anterior o denuncia/acta (reposición o cambio de domicilio, según el caso)',
+    ],
+    costoMXN: 0,
+    tiempoResolucion: 'Comprobante inmediato en el módulo; la credencial se entrega en los días posteriores según el INE',
+    fundamentoNormativo: 'Ley General de Instituciones y Procedimientos Electorales (credencial para votar)',
+    alertaAnticorrupcion:
+      'La credencial del INE es gratuita. Nadie puede cobrarte por la cita ni por "adelantarla".',
+    impactoComunitario: {
+      poblacionObjetivo: 'Personas de 18 años o más que necesitan credencial o actualizar su domicilio',
+      ahorroEstimado: 'Trámite gratuito; evita pagar a gestores o "citas" falsas',
+    },
+    palabrasClave: [
+      'ine',
+      'ife',
+      'credencial para votar',
+      'credencial de elector',
+      'credencial electoral',
+      'credencial del ine',
+      'sacar mi ine',
+      'sacar el ine',
+      'renovar ine',
+      'perdi mi ine',
+      'cambio de domicilio ine',
+      'modulo ine',
+      'tramitar ine',
+      'instituto nacional electoral',
+    ],
+  },
+  {
+    id: 'verificacion-vehicular',
+    nombreTramite: 'Verificación vehicular y verificentros CDMX',
+    categoria: 'Movilidad y Vehículos (SEMOVI)',
+    dependencia: 'Secretaría del Medio Ambiente (SEDEMA)',
+    requiereLlaveCDMX: false,
+    modalidad: 'Presencial',
+    resumenCiudadano:
+      'La verificación se hace cada semestre según el color de engomado (último dígito de la placa). Costo 2026: $765.45 MXN (5.625 UMA más IVA) para todos los hologramas. Calendario: placas 5 y 6 (amarillo): enero-febrero y julio-agosto; 7 y 8 (rosa): febrero-marzo y agosto-septiembre; 3 y 4 (rojo): marzo-abril y septiembre-octubre; 1 y 2 (verde): abril-mayo y octubre-noviembre; 9 y 0 (azul): mayo-junio y noviembre-diciembre.',
+    pasosAccion: [
+      'Revisa el último dígito de tu placa y el periodo que te toca en el calendario semestral.',
+      'Entra al portal de verificentros de SEDEMA y agenda tu cita en el centro que prefieras.',
+      'Lleva tu vehículo, tarjeta de circulación e identificación al verificentro en tu cita.',
+      'Paga el derecho ($765.45 MXN en 2026) y realiza la prueba.',
+      'Recibe tu holograma y constancia; si no apruebas, revisa el motor y regresa dentro del plazo que indique el verificentro.',
+    ],
+    documentosRequeridos: [
+      'Tarjeta de circulación vigente',
+      'Identificación oficial vigente',
+      'Comprobante de verificación anterior (si lo tienes)',
+      'Pago del derecho de verificación ($765.45 MXN en 2026)',
+      'Cita agendada en un verificentro',
+    ],
+    costoMXN: 765.45,
+    tiempoResolucion: 'La prueba se realiza el mismo día de tu cita',
+    fundamentoNormativo:
+      'Programa de Verificación Vehicular Obligatoria de la Ciudad de México (SEDEMA) y Código Fiscal de la Ciudad de México',
+    alertaAnticorrupcion:
+      'El costo es el mismo para todos los hologramas. Si alguien te ofrece "pasar" la prueba o un holograma sin verificar, es corrupción: denuncia en Locatel o Contraloría.',
+    impactoComunitario: {
+      poblacionObjetivo: 'Personas propietarias de vehículos con placas de la CDMX',
+      ahorroEstimado: 'Evita multas por no verificar a tiempo y el pago de hologramas falsos',
+    },
+    palabrasClave: [
+      'verificacion',
+      'verificar',
+      'verificentro',
+      'verificentros',
+      'verificacion vehicular',
+      'verifico',
+      'holograma',
+      'hologramas',
+      'engomado',
+      'calendario de verificacion',
+      'toca verificar',
+      'placa termina',
+      'termina en',
+      'terminacion de placa',
+      'ultimo digito',
+      'hoy no circula',
+      'verificasion',
+      'berificar',
+    ],
+  },
+  {
+    id: 'refrendo-tenencia',
+    nombreTramite: 'Refrendo y tenencia vehicular CDMX',
+    categoria: 'Movilidad y Vehículos (SEMOVI)',
+    dependencia: 'Secretaría de Administración y Finanzas (SAF) CDMX',
+    requiereLlaveCDMX: false,
+    modalidad: '100% Digital',
+    resumenCiudadano:
+      'El refrendo 2026 cuesta $760.00 MXN. Al pagarlo a tiempo, la tenencia tuvo subsidio del 100% para autos de hasta $638,000 MXN de valor factura con IVA (motocicletas, hasta $250,000 MXN). El tope de $250,000 que mucha gente recuerda es el anterior. Ese plazo para 2026 ya venció (se amplió hasta junio), así que ahora se paga con recargos; para 2027 Finanzas anuncia las reglas en enero.',
+    pasosAccion: [
+      'Consulta tus adeudos con tu placa en el portal de Finanzas CDMX.',
+      'Genera tu línea de captura de refrendo (y de tenencia si no aplica subsidio).',
+      'Paga en línea con tarjeta o en bancos, tiendas y cajas autorizadas.',
+      'Descarga tu comprobante de pago.',
+      'Para el siguiente año, paga el refrendo dentro de los primeros meses (antes del 31 de marzo) para conservar el subsidio si se mantiene.',
+    ],
+    documentosRequeridos: [
+      'Número de placa del vehículo',
+      'Número de serie (NIV) o número de motor, si el sistema lo pide',
+      'Tarjeta de circulación vigente',
+      'Factura original o valor factura del vehículo (para el cálculo y el subsidio)',
+      'Medio de pago (tarjeta o línea de captura)',
+    ],
+    costoMXN: 760,
+    costoTexto: 'Refrendo 2026: $760.00 MXN (tenencia: según valor factura; subsidio del 100% hasta $638,000 MXN con IVA, plazo 2026 vencido)',
+    tiempoResolucion: 'Comprobante inmediato al pagar en línea',
+    fundamentoNormativo:
+      'Código Fiscal de la Ciudad de México (derecho de refrendo, art. 219, e impuesto sobre tenencia o uso de vehículos) y acuerdos de subsidio de la Jefatura de Gobierno',
+    alertaAnticorrupcion:
+      'Paga solo en el portal de Finanzas CDMX o en cajas autorizadas. Desconfía de páginas que prometen "exentar tu tenencia" a cambio de un pago adicional.',
+    impactoComunitario: {
+      poblacionObjetivo: 'Personas propietarias de vehículos con placas de la CDMX',
+      ahorroEstimado: 'Hasta el 100% de la tenencia si se cumplen las reglas del subsidio del año',
+    },
+    palabrasClave: [
+      'refrendo',
+      'tenencia',
+      'pagar tenencia',
+      'pagar mi tenencia',
+      'subsidio de tenencia',
+      'exento de tenencia',
+      'exentar tenencia',
+      'tenencia gratis',
+      'impuesto vehicular',
+      'pagar refrendo',
+      'refrendo vehicular',
+      'tenensia',
+      'refrenso',
+    ],
+  },
+  {
+    id: 'fotocivicas-infracciones',
+    nombreTramite: 'Consulta de fotocívicas e infracciones de tránsito',
+    categoria: 'Movilidad y Vehículos (SEMOVI)',
+    dependencia: 'Juzgados Cívicos / Secretaría de Seguridad Ciudadana y Finanzas CDMX',
+    requiereLlaveCDMX: false,
+    modalidad: '100% Digital',
+    resumenCiudadano:
+      'Puedes consultar gratis si tu vehículo tiene fotocívicas o infracciones en los Estrados Electrónicos de la CDMX con tu placa. Si tienes adeudos, el sistema muestra el monto a pagar y puedes pagar con línea de captura en Finanzas CDMX. Si no estás de acuerdo con una multa, puedes impugnarla.',
+    pasosAccion: [
+      'Entra a los Estrados Electrónicos de la CDMX y captura tu placa.',
+      'Revisa las fotocívicas o infracciones registradas y sus fechas.',
+      'Genera tu línea de captura y paga en Finanzas CDMX (en línea, bancos o tiendas).',
+      'Descarga tu comprobante de pago.',
+      'Si crees que la multa es injusta, presenta tu aclaración o impugnación en el juzgado cívico que corresponda.',
+    ],
+    documentosRequeridos: [
+      'Número de placa del vehículo',
+      'Tarjeta de circulación (para aclaraciones)',
+      'Identificación oficial vigente',
+      'Línea de captura (si pagas)',
+    ],
+    costoMXN: 0,
+    costoTexto: 'La consulta es gratuita; el monto de la multa depende de la infracción',
+    tiempoResolucion: 'Consulta inmediata en línea',
+    fundamentoNormativo:
+      'Reglamento de Tránsito de la Ciudad de México y Código Fiscal de la Ciudad de México (multas y sanciones)',
+    alertaAnticorrupcion:
+      'Nunca pagues una multa "en efectivo" a una persona en la calle. Se paga solo con línea de captura oficial.',
+    impactoComunitario: {
+      poblacionObjetivo: 'Personas conductoras y propietarias de vehículos',
+      ahorroEstimado: 'Evita recargos por adeudos y pagos a intermediarios',
+    },
+    palabrasClave: [
+      'fotocivica',
+      'fotocivicas',
+      'foto civica',
+      'fotomulta',
+      'fotomultas',
+      'infraccion',
+      'infracciones',
+      'multa',
+      'multas',
+      'multa de transito',
+      'consultar multas',
+      'tengo multas',
+      'estrados',
+      'adeudos vehiculares',
+      'adeudos de mi carro',
+    ],
+  },
+  {
+    id: 'agua-sacmex',
+    nombreTramite: 'Recibo de agua SACMEX (consulta, pago y reportes)',
+    categoria: 'Vivienda y Uso de Suelo (SEDUVI)',
+    dependencia: 'Sistema de Aguas de la Ciudad de México (SACMEX)',
+    requiereLlaveCDMX: false,
+    modalidad: '100% Digital',
+    resumenCiudadano:
+      'Con tu número de cuenta de agua puedes consultar tu saldo, descargar tu boleta y pagar en línea en las aplicaciones de SACMEX. Para reportar falta de agua, fugas o mala calidad, usa Locatel o Atención Ciudadana. Las personas adultas mayores de 60 años pueden tener descuento del 50% en agua según los beneficios fiscales de Finanzas CDMX.',
+    pasosAccion: [
+      'Ten a la mano tu número de cuenta de agua (viene en tu boleta) o la dirección del inmueble.',
+      'Entra a las aplicaciones de SACMEX y consulta tu saldo y bimestres pendientes.',
+      'Descarga tu boleta y genera tu línea de captura.',
+      'Paga en línea con tarjeta o en bancos y cajas autorizadas.',
+      'Para falta de agua o fugas, reporta en Locatel (55 5658 1111) o en Atención Ciudadana y guarda tu folio.',
+    ],
+    documentosRequeridos: [
+      'Número de cuenta de agua (o dirección del inmueble)',
+      'Boleta anterior (opcional)',
+      'Identificación oficial (para aclaraciones o descuentos)',
+      'Comprobante de edad (si solicitas el beneficio para adultos mayores)',
+    ],
+    costoMXN: 0,
+    costoTexto: 'Según tu consumo y tarifa; consulta el monto exacto de tu boleta',
+    tiempoResolucion: 'Consulta y pago inmediatos en línea; los reportes de fugas dependen del área responsable',
+    fundamentoNormativo:
+      'Ley de Aguas del Distrito Federal y Código Fiscal de la Ciudad de México (derechos por suministro de agua)',
+    alertaAnticorrupcion:
+      'Paga solo con la boleta o línea de captura oficial. Nadie debe cobrarte por "no cortarte el servicio" ni por atender una fuga.',
+    impactoComunitario: {
+      poblacionObjetivo: 'Hogares y negocios con toma de agua en la CDMX',
+      ahorroEstimado: 'Evita recargos por pagos atrasados y descuentos para personas adultas mayores',
+    },
+    palabrasClave: [
+      'recibo del agua',
+      'recibo de agua',
+      'boleta del agua',
+      'boleta de agua',
+      'sacmex',
+      'saldo del agua',
+      'saldo de agua',
+      'pagar el agua',
+      'pagar mi agua',
+      'cuenta del agua',
+      'numero de cuenta de agua',
+      'adeudo de agua',
+      'consumo de agua',
+      'cobro de agua',
+      'checar el agua',
+      'mi recibo del agua',
+    ],
+  },
+  {
+    id: 'predial',
+    nombreTramite: 'Pago de Predial CDMX',
+    categoria: 'Vivienda y Uso de Suelo (SEDUVI)',
+    dependencia: 'Secretaría de Administración y Finanzas (SAF) CDMX',
+    requiereLlaveCDMX: false,
+    modalidad: '100% Digital',
+    resumenCiudadano:
+      'El predial se paga con tu cuenta catastral. Si pagas todo el año por adelantado tienes 8% de descuento en enero y 5% en febrero (según los beneficios 2026 de Finanzas). Personas de 60 años o más y grupos vulnerables pueden tener cuota fija de $68.00 MXN bimestral o hasta 30% de descuento según el valor catastral.',
+    pasosAccion: [
+      'Ubica tu cuenta catastral (viene en tu boleta predial).',
+      'Entra al portal de Finanzas CDMX y consulta tu adeudo.',
+      'Elige pago bimestral o anual anticipado para aprovechar el descuento.',
+      'Genera tu línea de captura y paga en línea, bancos o tiendas autorizadas.',
+      'Si eres persona adulta mayor, solicita tu beneficio con tu identificación y comprobante de domicilio.',
+    ],
+    documentosRequeridos: [
+      'Cuenta catastral del inmueble',
+      'Identificación oficial vigente',
+      'Comprobante de domicilio (si solicitas beneficio)',
+      'Comprobante de edad (adultos mayores)',
+      'Línea de captura pagada',
+    ],
+    costoMXN: 0,
+    costoTexto: 'Según valor catastral; descuento de 8% (enero) o 5% (febrero) por pago anual anticipado',
+    tiempoResolucion: 'Comprobante inmediato al pagar en línea',
+    fundamentoNormativo:
+      'Código Fiscal de la Ciudad de México (Impuesto Predial) y programas de beneficios fiscales de la SAF',
+    alertaAnticorrupcion:
+      'Los descuentos son oficiales y automáticos al pagar a tiempo. No pagues a gestores que "consiguen descuentos especiales".',
+    impactoComunitario: {
+      poblacionObjetivo: 'Propietarias y propietarios de inmuebles en la CDMX',
+      ahorroEstimado: 'Hasta 8% por pago anual anticipado y apoyos para adultos mayores',
+    },
+    palabrasClave: [
+      'predial',
+      'pagar predial',
+      'pagar el predial',
+      'boleta predial',
+      'impuesto predial',
+      'descuento predial',
+      'predial adultos mayores',
+      'predial 2026',
+      'predial 2027',
+      'predail',
+      'predal',
+    ],
+  },
+  {
+    id: 'escrituras-rppc',
+    nombreTramite: 'Escrituras, folio real y Registro Público de la Propiedad (RPPC)',
+    categoria: 'Vivienda y Uso de Suelo (SEDUVI)',
+    dependencia: 'Consejería Jurídica y de Servicios Legales / Registro Público de la Propiedad y de Comercio',
+    requiereLlaveCDMX: true,
+    modalidad: 'Híbrido',
+    resumenCiudadano:
+      'Para escriturar, heredar o comprobar a nombre de quién está una propiedad necesitas el folio real y, a veces, una constancia o copia certificada del Registro Público de la Propiedad. La Jornada Notarial 2026 de la CDMX ofrece descuentos en escrituras (entre 10% y hasta 60% según el valor del inmueble), testamentos y sucesiones, vigente hasta el 31 de diciembre de 2026. Los talones se tramitan en la Dirección General de Regulación Territorial.',
+    pasosAccion: [
+      'Reúne tu escritura o datos del inmueble y ubica su folio real.',
+      'Consulta o solicita tu constancia de folio real en los servicios electrónicos del Registro Público de la Propiedad (Consejería Jurídica).',
+      'Para aprovechar la Jornada Notarial, tramita tu talón de descuento y elige un notario participante.',
+      'Paga los derechos con línea de captura oficial.',
+      'Firma ante notario y verifica que tu escritura quede inscrita en el RPPC.',
+    ],
+    documentosRequeridos: [
+      'Identificación oficial vigente',
+      'Escritura, título o documento que acredite la propiedad',
+      'Boleta predial reciente y cuenta catastral',
+      'CURP y comprobante de domicilio',
+      'Folio real del inmueble (o datos para ubicarlo)',
+      'Talón de descuento de la Jornada Notarial (si aplica)',
+    ],
+    costoMXN: 0,
+    costoTexto:
+      'Según el acto y el valor del inmueble; Jornada Notarial 2026: descuentos de 10% a 60% en escrituras y hasta 50% en testamentos. Tarifa de constancias en la lista de trámites 2026 del RPPC.',
+    tiempoResolucion: 'Constancias electrónicas en pocos días; escrituración depende del notario y del acto',
+    fundamentoNormativo:
+      'Código Civil para el Distrito Federal, Ley del Notariado de la Ciudad de México y Código Fiscal de la Ciudad de México (derechos del Registro Público)',
+    alertaAnticorrupcion:
+      'Los notarios participantes en la Jornada aplican tarifas con descuento oficial. Pide siempre recibo y no entregues dinero a intermediarios que prometen "regularizar sin papeles".',
+    impactoComunitario: {
+      poblacionObjetivo: 'Familias que quieren regularizar su vivienda o hacer testamento',
+      ahorroEstimado: 'Hasta 60% menos en escrituras durante la Jornada Notarial',
+    },
+    palabrasClave: [
+      'escritura',
+      'escrituras',
+      'escriturar',
+      'testamento',
+      'jornada notarial',
+      'notario',
+      'folio real',
+      'registro publico de la propiedad',
+      'rppc',
+      'constancia de folio',
+      'regularizar mi casa',
+      'regularizar propiedad',
+      'comprar casa',
+      'compraventa',
+      'sucesion',
+      'heredar',
+      'escritura de mi casa',
+    ],
+  },
+  {
+    id: 'guia-18-anos',
+    nombreTramite: 'Cumplí 18 años: mis primeros trámites',
+    categoria: 'Identidad y Registro Civil',
+    dependencia: 'INE, Gobierno CDMX, SAT, SEDENA y SEMOVI',
+    requiereLlaveCDMX: true,
+    modalidad: 'Híbrido',
+    resumenCiudadano:
+      'Al cumplir 18 años conviene hacer cinco trámites en este orden: 1) INE, 2) Llave CDMX, 3) RFC y e.firma en el SAT, 4) Cartilla del Servicio Militar Nacional (obligatoria para hombres, voluntaria para mujeres) en la Junta de Reclutamiento de tu alcaldía y 5) tu primera licencia de conducir (Tipo A de 3 años $1,142.00 MXN o permanente $1,500.00 MXN hasta el 31 de diciembre de 2026).',
+    pasosAccion: [
+      'INE: agenda tu cita y acude a un módulo con acta de nacimiento, identificación con foto y comprobante de domicilio.',
+      'Llave CDMX: crea tu cuenta con CURP, correo y celular; la usarás en casi todos los trámites digitales.',
+      'RFC y e.firma: obtén tu RFC con tu CURP en el portal del SAT y agenda cita para tu e.firma.',
+      'Cartilla del Servicio Militar Nacional: acude a la Junta de Reclutamiento de tu alcaldía con tus documentos (trámite gratuito).',
+      'Primera licencia de conducir: paga la línea de captura, presenta el examen que corresponda y agenda tu cita en SEMOVI.',
+    ],
+    documentosRequeridos: [
+      'Acta de nacimiento original',
+      'CURP',
+      'Identificación con fotografía (credencial escolar o pasaporte)',
+      'Comprobante de domicilio reciente (máximo 3 meses)',
+      'Correo electrónico y teléfono celular propios (para Llave CDMX y SAT)',
+      'Memoria USB (para guardar tu e.firma)',
+      'Fotografías tamaño pasaporte (según te indique la Junta de Reclutamiento)',
+    ],
+    costoMXN: 0,
+    costoTexto:
+      'INE, Llave CDMX, RFC, e.firma y Cartilla: gratuitos. Primera licencia: $1,142.00 MXN (3 años) o $1,500.00 MXN (permanente)',
+    tiempoResolucion: 'Varía por trámite; la Llave CDMX y el RFC se obtienen el mismo día',
+    fundamentoNormativo:
+      'Constitución Política (art. 31 y 36, obligaciones ciudadanas), Ley del Servicio Militar, Código Fiscal de la Federación (RFC) y Ley de Movilidad de la CDMX',
+    alertaAnticorrupcion:
+      'INE, RFC, e.firma, Llave CDMX y Cartilla son gratuitos. Si alguien te cobra por conseguir tu cita o "acelerar" estos trámites, es un coyote.',
+    impactoComunitario: {
+      poblacionObjetivo: 'Jóvenes de la CDMX que acaban de cumplir 18 años',
+      ahorroEstimado: 'Evita pagos a gestores y viajes repetidos por documentos faltantes',
+    },
+    palabrasClave: [
+      'cumpli 18',
+      'cumpli los 18',
+      'cumplir 18',
+      '18 anos',
+      'acabo de cumplir 18',
+      'mayor de edad',
+      'mayoria de edad',
+      'primeros tramites',
+      'que tramites debo hacer',
+      'tramites a los 18',
+      'cartilla',
+      'servicio militar',
+      'cartilla militar',
+      'efirma',
+      'e firma',
+      'firma electronica',
+      'rfc',
+      'sacar mi rfc',
+      'sat',
+      'ya soy mayor de edad',
+    ],
+  },
+];
+
+/** Orden de prioridad para desempates en la búsqueda (más específicos primero). */
+const ORDEN_TRAMITES = [
+  'guia-18-anos',
+  'licencia-permanente',
+  'permiso-menores',
+  'licencias-especiales',
+  'licencia-tipo-a',
+  'verificacion-vehicular',
+  'refrendo-tenencia',
+  'fotocivicas-infracciones',
+  'tarjeta-circulacion',
+  'ine',
+  'acta-registro-civil',
+  'agua-sacmex',
+  'predial',
+  'escrituras-rppc',
+  'cuzus',
+  'apertura-negocio-bajo-impacto',
+  'reporte-suac-locatel',
+];
+
+const TODOS = [...TRAMITES_BASE, ...TRAMITES_NUEVOS];
+export const TRAMITES: TramiteRecord[] = [
+  ...ORDEN_TRAMITES.map((id) => TODOS.find((t) => t.id === id)).filter(
+    (t): t is TramiteRecord => Boolean(t),
+  ),
+  ...TODOS.filter((t) => !ORDEN_TRAMITES.includes(t.id)),
+];
+
+// ---------------------------------------------------------------------------
+// Extras de los trámites nuevos: flujo con links oficiales y radiografía callejera.
+// ---------------------------------------------------------------------------
+const radiografia = (advertencias: string[]): RadiografiaCallejera => ({
+  fuente: FUENTE_RADIOGRAFIA,
+  advertencias,
+  nota: NOTA_RADIOGRAFIA,
+});
+
+Object.assign(EXTRAS_TRAMITE, {
+  'licencias-especiales': {
+    variantes: ['A1: motocicleta', 'A2: auto y moto', 'B: taxi', 'C: pasajeros', 'D/E: carga y especializado'],
+    pasosOficiales: [
+      {
+        numero: 1,
+        titulo: 'Llave CDMX y pago de tu línea de captura',
+        descripcion: 'Elige el tipo de licencia, genera la línea de captura y págala.',
+        enlaces: [L.llave, L.pago],
+      },
+      {
+        numero: 2,
+        titulo: 'Validación de datos y documentos',
+        descripcion: 'Confirma en el portal de trámites los requisitos de tu tipo de licencia.',
+        enlaces: [L.tramites],
+      },
+      {
+        numero: 3,
+        titulo: 'Cita y módulo físico más cercano',
+        descripcion: 'Agenda en SEMOVI y acude con originales para foto y firma.',
+        enlaces: [L.citasSemovi],
+        muestraModulo: true,
+      },
+    ],
+    radiografia: radiografia([
+      'Confirma el tipo exacto antes de pagar: pagar la clave equivocada es el error más común.',
+      'En licencias de transporte lleva todos los documentos de operador; si falta uno te regresan.',
+      'Nadie en la calle puede "asegurar" tu licencia de taxi o transporte.',
+    ]),
+  },
+  'permiso-menores': {
+    variantes: ['Primera vez (16 años)', 'Reposición del permiso'],
+    pasosOficiales: [
+      {
+        numero: 1,
+        titulo: 'Curso de manejo y línea de captura ($508.00 MXN)',
+        descripcion: 'Aprueba el curso en una escuela certificada y paga tu línea de captura (clave 14).',
+        enlaces: [L.llave, L.pago],
+      },
+      {
+        numero: 2,
+        titulo: 'Reúne la documentación con tu madre, padre o tutor',
+        descripcion: 'Acta, identificaciones, comprobante de domicilio y constancia del curso, en original y copia.',
+        enlaces: [L.tramites],
+      },
+      {
+        numero: 3,
+        titulo: 'Cita en el Módulo de Control Vehicular',
+        descripcion: 'Agenda en SEMOVI y acude acompañado de tu madre, padre o tutor.',
+        enlaces: [L.citasSemovi],
+        muestraModulo: true,
+      },
+    ],
+    radiografia: radiografia([
+      'Verifica que la escuela de manejo esté en la lista certificada de SEMOVI; si no, la constancia no sirve.',
+      'Llega con tu madre, padre o tutor y con copias de todo.',
+      'El permiso tiene restricciones de horario: revisa las condiciones al recibirlo.',
+    ]),
+  },
+  ine: {
+    variantes: ['Primera vez', 'Reposición', 'Cambio de domicilio'],
+    notaModulo:
+      'Los módulos del INE son distintos a la alcaldía: ubica el más cercano en ubicatumodulo.ine.mx. Esta sede de referencia solo te orienta en tu alcaldía.',
+    pasosOficiales: [
+      {
+        numero: 1,
+        titulo: 'Ubica tu módulo INE',
+        descripcion: 'Busca el módulo más cercano a tu domicilio en el sitio oficial del INE.',
+        enlaces: [L.ine],
+      },
+      {
+        numero: 2,
+        titulo: 'Agenda tu cita',
+        descripcion: 'Agenda por los medios del INE o por INETEL (800 433 2000).',
+        enlaces: [L.ine],
+      },
+      {
+        numero: 3,
+        titulo: 'Acude con tus documentos',
+        descripcion: 'Lleva acta de nacimiento, identificación y comprobante de domicilio originales.',
+        enlaces: [L.ine],
+        muestraModulo: true,
+      },
+    ],
+    radiografia: radiografia([
+      'Llega 10 minutos antes de tu cita; sin cita las filas suelen ser larguísimas.',
+      'El comprobante de domicilio debe tener tu nombre y ser reciente.',
+      'Es gratis: no pagues a "coyotes" afuera de los módulos.',
+    ]),
+  },
+  'verificacion-vehicular': {
+    variantes: ['Calendario semestral por engomado', 'Cita en verificentro'],
+    notaModulo:
+      'Los verificentros están autorizados por SEDEMA: ubica el más cercano y agenda tu cita en el portal oficial de verificentros.',
+    pasosOficiales: [
+      {
+        numero: 1,
+        titulo: 'Revisa tu calendario por último dígito de placa',
+        descripcion:
+          '5-6 amarillo (ene-feb y jul-ago); 7-8 rosa (feb-mar y ago-sep); 3-4 rojo (mar-abr y sep-oct); 1-2 verde (abr-may y oct-nov); 9-0 azul (may-jun y nov-dic).',
+        enlaces: [L.verificentros],
+      },
+      {
+        numero: 2,
+        titulo: 'Agenda tu cita en un verificentro',
+        descripcion: 'Elige centro, fecha y hora en el portal oficial.',
+        enlaces: [L.verificentros],
+      },
+      {
+        numero: 3,
+        titulo: 'Acude y paga $765.45 MXN',
+        descripcion: 'Lleva tarjeta de circulación e identificación; recibe tu holograma.',
+        enlaces: [L.verificentros],
+        muestraModulo: true,
+      },
+    ],
+    radiografia: radiografia([
+      'Verifica dentro de tu periodo: fuera de fecha te pueden multar.',
+      'Si tu auto no pasa, atiende el motor y regresa dentro del plazo que indique el verificentro.',
+      'Nadie puede venderte un holograma sin prueba: es ilegal.',
+    ]),
+  },
+  'refrendo-tenencia': {
+    variantes: ['Refrendo 2026: $760.00 MXN', 'Tenencia con subsidio según valor factura'],
+    pasosOficiales: [
+      {
+        numero: 1,
+        titulo: 'Consulta tus adeudos con tu placa',
+        descripcion: 'Entra al portal de Finanzas CDMX y revisa refrendo, tenencia y multas.',
+        enlaces: [L.pago],
+      },
+      {
+        numero: 2,
+        titulo: 'Genera tu línea de captura',
+        descripcion: 'Refrendo $760.00 MXN (2026). Revisa si te aplica el subsidio de tenencia.',
+        enlaces: [L.pago],
+      },
+      {
+        numero: 3,
+        titulo: 'Paga y descarga tu comprobante',
+        descripcion: 'En línea con tarjeta, en bancos o en cajas autorizadas.',
+        enlaces: [L.pago, L.tramites],
+        muestraModulo: true,
+      },
+    ],
+    radiografia: radiografia([
+      'Paga el refrendo en los primeros meses del año para conservar el subsidio de tenencia cuando exista.',
+      'Revisa que no tengas multas pendientes: pueden bloquear el trámite.',
+      'Conserva siempre el comprobante de pago.',
+    ]),
+  },
+  'fotocivicas-infracciones': {
+    variantes: ['Consulta gratuita', 'Pago de multa', 'Aclaración o impugnación'],
+    pasosOficiales: [
+      {
+        numero: 1,
+        titulo: 'Consulta tu placa en Estrados',
+        descripcion: 'Revisa gratis si tienes fotocívicas o infracciones registradas.',
+        enlaces: [L.estrados],
+      },
+      {
+        numero: 2,
+        titulo: 'Genera y paga tu línea de captura',
+        descripcion: 'Paga en Finanzas CDMX en línea, bancos o tiendas autorizadas.',
+        enlaces: [L.pago],
+      },
+      {
+        numero: 3,
+        titulo: 'Aclaración en juzgado cívico (si aplica)',
+        descripcion: 'Si la multa es errónea, presenta tu aclaración con tarjeta de circulación e identificación.',
+        enlaces: [L.estrados],
+        muestraModulo: true,
+      },
+    ],
+    radiografia: radiografia([
+      'Consulta antes de verificar o pagar refrendo: los adeudos pueden bloquear esos trámites.',
+      'Guarda tu comprobante de pago por si el sistema tarda en actualizarse.',
+      'Nunca pagues multas en efectivo a una persona en la calle.',
+    ]),
+  },
+  'agua-sacmex': {
+    variantes: ['Consulta de saldo', 'Descarga de boleta', 'Reporte de falta de agua o fugas'],
+    pasosOficiales: [
+      {
+        numero: 1,
+        titulo: 'Ubica tu número de cuenta',
+        descripcion: 'Lo encuentras en tu boleta de agua o con la dirección del inmueble.',
+        enlaces: [L.sacmex],
+      },
+      {
+        numero: 2,
+        titulo: 'Consulta saldo y descarga tu boleta',
+        descripcion: 'Entra a las aplicaciones de SACMEX para ver adeudos y descargar la boleta.',
+        enlaces: [L.sacmex],
+      },
+      {
+        numero: 3,
+        titulo: 'Paga o reporta',
+        descripcion: 'Paga con línea de captura. Para fugas o falta de agua, reporta en Locatel y guarda tu folio.',
+        enlaces: [L.pago, L.suac],
+        muestraModulo: true,
+      },
+    ],
+    radiografia: radiografia([
+      'Si tu boleta sube mucho, pide revisión del medidor antes de pagar.',
+      'Reporta fugas con dirección exacta y foto; sin folio no hay seguimiento.',
+      'Adultos mayores: pregunta por el descuento en agua en Finanzas.',
+    ]),
+  },
+  predial: {
+    variantes: ['Pago bimestral', 'Pago anual anticipado (8% en enero, 5% en febrero)', 'Beneficio para adultos mayores'],
+    pasosOficiales: [
+      {
+        numero: 1,
+        titulo: 'Ubica tu cuenta catastral',
+        descripcion: 'Está en tu boleta predial; también puedes consultarla en el portal de Finanzas.',
+        enlaces: [L.pago],
+      },
+      {
+        numero: 2,
+        titulo: 'Elige cómo pagar',
+        descripcion: 'Anual anticipado para el descuento, o bimestral.',
+        enlaces: [L.pago],
+      },
+      {
+        numero: 3,
+        titulo: 'Paga y conserva tu comprobante',
+        descripcion: 'En línea, bancos o tiendas autorizadas.',
+        enlaces: [L.pago, L.tramites],
+        muestraModulo: true,
+      },
+    ],
+    radiografia: radiografia([
+      'El descuento solo aplica si pagas los seis bimestres del año por adelantado.',
+      'Guarda el comprobante: sirve para trámites de escrituras y créditos.',
+      'Adultos mayores: lleva identificación y comprobante de domicilio para pedir tu beneficio.',
+    ]),
+  },
+  'escrituras-rppc': {
+    variantes: ['Escrituración', 'Testamento y sucesiones', 'Constancia de folio real'],
+    pasosOficiales: [
+      {
+        numero: 1,
+        titulo: 'Ubica tu folio real y tu cuenta catastral',
+        descripcion: 'Con tu escritura o boleta predial identifica el inmueble.',
+        enlaces: [L.consejeria],
+      },
+      {
+        numero: 2,
+        titulo: 'Solicita constancia o copia certificada en el RPPC',
+        descripcion: 'Usa los servicios electrónicos de la Consejería Jurídica.',
+        enlaces: [L.consejeria, L.pago],
+      },
+      {
+        numero: 3,
+        titulo: 'Jornada Notarial y firma ante notario',
+        descripcion: 'Tramita tu talón de descuento (vigente hasta el 31 de diciembre de 2026) y elige notario participante.',
+        enlaces: [L.consejeria],
+        muestraModulo: true,
+      },
+    ],
+    radiografia: radiografia([
+      'Pide el costo total por escrito antes de iniciar con el notario.',
+      'Aprovecha la Jornada Notarial: termina el 31 de diciembre de 2026.',
+      'Desconfía de intermediarios que prometen "regularizar" sin documentos.',
+    ]),
+  },
+  'guia-18-anos': {
+    variantes: ['INE', 'Llave CDMX', 'RFC y e.firma (SAT)', 'Cartilla del SMN', 'Primera licencia de conducir'],
+    notaModulo:
+      'La Cartilla del Servicio Militar se tramita en la Junta de Reclutamiento de tu alcaldía; el INE y el SAT tienen sus propios módulos.',
+    pasosOficiales: [
+      {
+        numero: 1,
+        titulo: 'INE (credencial para votar)',
+        descripcion: 'Ubica tu módulo, agenda cita y lleva acta, identificación y comprobante de domicilio.',
+        enlaces: [L.ine],
+      },
+      {
+        numero: 2,
+        titulo: 'Crea tu Llave CDMX',
+        descripcion: 'Con CURP, correo y celular; es tu acceso a los trámites digitales de la ciudad.',
+        enlaces: [L.llave, L.tramites],
+      },
+      {
+        numero: 3,
+        titulo: 'RFC y e.firma en el SAT',
+        descripcion: 'Obtén tu RFC con tu CURP y agenda cita para tu e.firma con USB.',
+        enlaces: [L.sat],
+      },
+      {
+        numero: 4,
+        titulo: 'Cartilla del Servicio Militar Nacional',
+        descripcion: 'Acude a la Junta de Reclutamiento de tu alcaldía con tus documentos. Es gratuita.',
+        enlaces: [L.sedena],
+        muestraModulo: true,
+      },
+      {
+        numero: 5,
+        titulo: 'Tu primera licencia de conducir',
+        descripcion: 'Tipo A de 3 años ($1,142.00 MXN) o permanente ($1,500.00 MXN, hasta el 31 de diciembre de 2026).',
+        enlaces: [L.llave, L.pago, L.citasSemovi],
+      },
+    ],
+    radiografia: radiografia([
+      'Empieza por la INE y la Llave CDMX: casi todo lo demás las pide.',
+      'Guarda tu e.firma en una USB y respáldala: si la pierdes tendrás que repetir el trámite.',
+      'Todos estos trámites son gratuitos excepto la licencia: no pagues a coyotes por las citas.',
+    ]),
+  },
+} as Record<string, ExtrasTramite>);
+
+// ---------------------------------------------------------------------------
+// Explorador de categorías (interfaz): sub-trámites listos para consultar en 1 clic.
+// ---------------------------------------------------------------------------
+export const CATEGORIAS_EXPLORADOR: CategoriaExplorador[] = [
+  {
+    id: 'licencias',
+    icono: '🪪',
+    titulo: 'Licencias e Identificaciones',
+    descripcion: 'Licencias, permisos de conducir, INE y actas',
+    subtramites: [
+      {
+        tramiteId: 'licencia-permanente',
+        etiqueta: 'Licencia Permanente CDMX',
+        detalle: '$1,500 MXN · examen teórico digital · hasta dic 2026',
+        consulta: '¿Cómo saco la Licencia Permanente CDMX?',
+      },
+      {
+        tramiteId: 'licencia-tipo-a',
+        etiqueta: 'Licencia Tipo A (3 años)',
+        detalle: '$1,142 MXN · renovación o primera vez',
+        consulta: '¿Cómo saco la Licencia Tipo A de 3 años?',
+      },
+      {
+        tramiteId: 'licencias-especiales',
+        etiqueta: 'Licencias especiales (A1/A2, B, C, E)',
+        detalle: 'Motociclistas, taxis y transporte',
+        consulta: '¿Qué requisitos hay para una licencia de moto o de taxi?',
+      },
+      {
+        tramiteId: 'permiso-menores',
+        etiqueta: 'Permiso de conducir para menores',
+        detalle: '$508 MXN · 16 a 17 años · curso y tutor',
+        consulta: '¿Cómo tramito el permiso de conducir para menores de edad?',
+      },
+      {
+        tramiteId: 'ine',
+        etiqueta: 'INE (credencial para votar)',
+        detalle: 'Gratis · primera vez, reposición o domicilio',
+        consulta: '¿Cómo tramito mi INE?',
+      },
+      {
+        tramiteId: 'acta-registro-civil',
+        etiqueta: 'Actas del Registro Civil',
+        detalle: '$98 MXN · descarga en línea',
+        consulta: '¿Cómo saco una copia certificada de mi acta de nacimiento?',
+      },
+    ],
+  },
+  {
+    id: 'autos',
+    icono: '🚗',
+    titulo: 'Autos, Verificación, Tenencia y Refrendo',
+    descripcion: 'Verificentros, refrendo, multas y tarjeta de circulación',
+    subtramites: [
+      {
+        tramiteId: 'verificacion-vehicular',
+        etiqueta: 'Verificación vehicular y verificentros',
+        detalle: '$765.45 MXN · calendario por placa',
+        consulta: '¿Cuándo me toca verificar mi auto y cuánto cuesta?',
+      },
+      {
+        tramiteId: 'refrendo-tenencia',
+        etiqueta: 'Refrendo y tenencia',
+        detalle: 'Refrendo 2026: $760 MXN',
+        consulta: '¿Cómo pago el refrendo y la tenencia?',
+      },
+      {
+        tramiteId: 'tarjeta-circulacion',
+        etiqueta: 'Renovación de tarjeta de circulación',
+        detalle: '$433 MXN',
+        consulta: '¿Cómo renuevo mi tarjeta de circulación?',
+      },
+      {
+        tramiteId: 'fotocivicas-infracciones',
+        etiqueta: 'Fotocívicas e infracciones',
+        detalle: 'Consulta gratis con tu placa',
+        consulta: '¿Cómo consulto si tengo multas o fotocívicas?',
+      },
+    ],
+  },
+  {
+    id: 'casa',
+    icono: '🏠',
+    titulo: 'Casa, Agua, Predial y Escrituras',
+    descripcion: 'Recibo de agua, predial, escrituras y reportes',
+    subtramites: [
+      {
+        tramiteId: 'agua-sacmex',
+        etiqueta: 'Recibo de agua SACMEX',
+        detalle: 'Consulta, pago y reportes de fugas',
+        consulta: '¿Cómo checo y pago mi recibo del agua?',
+      },
+      {
+        tramiteId: 'predial',
+        etiqueta: 'Pago de Predial',
+        detalle: '8% desc. en enero · 5% en febrero',
+        consulta: '¿Cómo pago el predial y qué descuentos hay?',
+      },
+      {
+        tramiteId: 'escrituras-rppc',
+        etiqueta: 'Escrituras, folio real y RPPC',
+        detalle: 'Jornada Notarial: hasta 60% de descuento',
+        consulta: '¿Cómo saco mis escrituras o mi folio real y qué es la Jornada Notarial?',
+      },
+      {
+        tramiteId: 'reporte-suac-locatel',
+        etiqueta: 'Reportar baches, fugas o luminarias',
+        detalle: 'Gratis · Locatel y Atención Ciudadana',
+        consulta: '¿Cómo reporto un bache o una luminaria descompuesta?',
+      },
+    ],
+  },
+  {
+    id: 'negocios',
+    icono: '🏪',
+    titulo: 'Locales Comerciales y Negocios',
+    descripcion: 'Uso de suelo y apertura sin clausuras',
+    subtramites: [
+      {
+        tramiteId: 'cuzus',
+        etiqueta: 'Permiso de Uso de Suelo Comercial (SEDUVI)',
+        detalle: '$2,104 MXN · certificado digital · sin coyotes',
+        consulta: '¿Dónde saco el permiso de uso de suelo comercial para mi local?',
+      },
+      {
+        tramiteId: 'apertura-negocio-bajo-impacto',
+        etiqueta: 'Aviso de apertura de bajo impacto (SIAPEM)',
+        detalle: 'Gratis · en línea con Llave CDMX',
+        consulta: 'Quiero abrir una cafetería y que no me clausuren',
+      },
+    ],
+  },
+  {
+    id: 'mayoria-edad',
+    icono: '🎓',
+    titulo: 'Cumplí 18 años: Mis primeros trámites',
+    descripcion: 'INE, Llave CDMX, RFC, Cartilla y primera licencia',
+    destacada: true,
+    insignia: '⭐ Para jóvenes de 18',
+    subtramites: [
+      {
+        tramiteId: 'guia-18-anos',
+        etiqueta: 'Ruta guiada de 5 pasos',
+        detalle: 'INE · Llave CDMX · SAT · Cartilla · Licencia',
+        consulta: 'Ya cumplí 18 años, ¿qué trámites debo hacer?',
+      },
+    ],
+  },
+];

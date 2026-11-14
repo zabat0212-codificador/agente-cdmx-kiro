@@ -70,12 +70,19 @@ export function buscarTramite(
   if (!consultaNorm) return null;
   const candidatos = categoria ? TRAMITES.filter((t) => t.categoria === categoria) : TRAMITES;
 
+  const palabras = new Set(consultaNorm.split(' '));
   let mejor: TramiteRecord | null = null;
   let mejorPuntos = 0;
   for (const tramite of candidatos) {
     let puntos = 0;
     for (const clave of tramite.palabrasClave) {
-      if (clave && consultaNorm.includes(clave)) puntos += 1;
+      if (!clave) continue;
+      // Claves de 3 letras o menos ("ine", "rfc", "sat") deben ser palabras completas.
+      const coincide =
+        clave.length <= 3 && !clave.includes(' ')
+          ? palabras.has(clave)
+          : consultaNorm.includes(clave);
+      if (coincide) puntos += 1;
     }
     if (puntos > mejorPuntos) {
       mejor = tramite;
@@ -273,6 +280,11 @@ export function formatearCosto(costoMXN: number): string {
   return `$${texto} MXN`;
 }
 
+/** Texto de costo del trámite (cifra única o descripción cuando hay varias tarifas). */
+function costoDe(t: TramiteRecord): string {
+  return t.costoTexto ?? formatearCosto(t.costoMXN);
+}
+
 function respuestaNoEncontrada(req: AgentRequest): AgentResponse {
   return {
     id: req.id,
@@ -312,7 +324,7 @@ function armarRespuesta(req: AgentRequest, tramite: TramiteRecord): AgentRespons
     resumenCiudadano: tramite.resumenCiudadano,
     pasosAccion: [...tramite.pasosAccion],
     documentosRequeridos: [...tramite.documentosRequeridos, ...aprendido],
-    costoOficialMXN: formatearCosto(tramite.costoMXN),
+    costoOficialMXN: costoDe(tramite),
     tiempoResolucion: tramite.tiempoResolucion,
     fundamentoNormativo: tramite.fundamentoNormativo,
     alertaAnticorrupcion: tramite.alertaAnticorrupcion,
@@ -323,12 +335,15 @@ function armarRespuesta(req: AgentRequest, tramite: TramiteRecord): AgentRespons
     radiografiaCallejera: extras?.radiografia,
     aprendidoCiudadanos: aprendido,
     moduloCercano,
+    notaModulo: extras?.notaModulo,
   };
 }
 
-export function procesarConsulta(req: AgentRequest): AgentResponse {
+export function procesarConsulta(req: AgentRequest, tramiteId?: string): AgentResponse {
   try {
-    const tramite = buscarTramite(normalizar(req.consultaCiudadana), req.categoria);
+    const tramite =
+      (tramiteId ? TRAMITES.find((t) => t.id === tramiteId) : undefined) ??
+      buscarTramite(normalizar(req.consultaCiudadana), req.categoria);
     if (!tramite) return respuestaNoEncontrada(req);
     return armarRespuesta(req, tramite);
   } catch {
@@ -363,8 +378,9 @@ export function procesarMensaje(
   texto: string,
   alcaldia: AlcaldiaCDMX,
   coordenadas?: Coordenadas,
+  tramiteId?: string,
 ): ResultadoMensaje {
-  const entrenamiento = detectarEntrenamiento(texto);
+  const entrenamiento = tramiteId ? null : detectarEntrenamiento(texto);
   if (entrenamiento) {
     const tramite =
       buscarTramite(normalizar(entrenamiento.contexto)) ??
@@ -388,7 +404,10 @@ export function procesarMensaje(
   }
   return {
     tipo: 'consulta',
-    respuesta: procesarConsulta({ id: nuevoId(), consultaCiudadana: texto, alcaldia, coordenadas }),
+    respuesta: procesarConsulta(
+      { id: nuevoId(), consultaCiudadana: texto, alcaldia, coordenadas },
+      tramiteId,
+    ),
   };
 }
 
@@ -397,29 +416,13 @@ export function procesarMensaje(
 // usando como contexto los datos oficiales, la alcaldía y la memoria colectiva.
 // Orden: Gemini (si hay API key) -> Pollinations (sin llave) -> texto local.
 // ---------------------------------------------------------------------------
-const CLAVE_GEMINI = 'GEMINI_API_KEY';
 const URL_POLLINATIONS = 'https://text.pollinations.ai/openai';
 const TIMEOUT_IA_MS = 20000;
 
-export function leerGeminiKey(): string {
-  try {
-    const guardada = almacen()?.getItem(CLAVE_GEMINI);
-    if (guardada) return guardada;
-  } catch {
-    /* ignorar */
-  }
+/** La llave se lee en silencio desde .env.local (VITE_GEMINI_API_KEY); si falta, se usa el respaldo. */
+function leerGeminiKey(): string {
   const env = (import.meta as unknown as { env?: Record<string, string | undefined> }).env ?? {};
   return env.VITE_GEMINI_API_KEY ?? '';
-}
-
-export function guardarGeminiKey(clave: string): void {
-  try {
-    const limpia = clave.trim();
-    if (limpia) almacen()?.setItem(CLAVE_GEMINI, limpia);
-    else almacen()?.removeItem(CLAVE_GEMINI);
-  } catch {
-    /* ignorar */
-  }
 }
 
 function resumenTramite(t: TramiteRecord, aprendido: string[]) {
@@ -430,7 +433,7 @@ function resumenTramite(t: TramiteRecord, aprendido: string[]) {
     dependencia: t.dependencia,
     modalidad: t.modalidad,
     requiereLlaveCDMX: t.requiereLlaveCDMX,
-    costoOficial: formatearCosto(t.costoMXN),
+    costoOficial: costoDe(t),
     resumen: t.resumenCiudadano,
     pasos: t.pasosAccion,
     documentosOficiales: t.documentosRequeridos,
@@ -450,7 +453,7 @@ export function construirSystemPrompt(
   const memoria = leerMemoria();
   const modulo = coordenadas ? moduloMasCercano(coordenadas) : moduloDeAlcaldia(alcaldia);
   const catalogo = TRAMITES.map(
-    (t) => `- ${t.id}: ${t.nombreTramite} (${formatearCosto(t.costoMXN)})`,
+    (t) => `- ${t.id}: ${t.nombreTramite} (${costoDe(t)})`,
   ).join('\n');
   const hoy = new Date().toLocaleDateString('es-MX', {
     day: 'numeric',
@@ -466,6 +469,7 @@ export function construirSystemPrompt(
     '3. Si el tema es la licencia permanente, usa solo el trámite "licencia-permanente"; si es la de 3 años, usa "licencia-tipo-a". No las mezcles.',
     '4. Los requisitos de "requisitosAprendidosDeCiudadanos_noOficiales" los reportaron otros ciudadanos: menciónalos como advertencia ("otros ciudadanos reportaron...") y no como regla oficial.',
     '5. Responde en 2 a 4 oraciones (máximo 90 palabras), texto plano sin markdown, listas ni tablas: los pasos, documentos y enlaces ya se muestran en tarjetas debajo de tu respuesta, no los repitas completos. No pidas la Llave CDMX ni datos personales sensibles. Nunca aconsejes pagar a gestores o "coyotes".',
+    '6. Si preguntan por fechas o calendarios, usa la fecha de hoy para decir cuál es el próximo periodo que le toca. No inventes plazos que no estén en los datos.',
     `MÓDULO DE REFERENCIA: ${modulo.modulo.nombre}, ${modulo.modulo.direccion}. Horario: ${modulo.modulo.horario}.${
       modulo.distanciaKm !== undefined ? ` Está a ${modulo.distanciaKm.toFixed(1)} km de la persona.` : ''
     }`,
@@ -606,8 +610,9 @@ export async function procesarMensajeAsync(
   alcaldia: AlcaldiaCDMX,
   coordenadas?: Coordenadas,
   historial: TurnoChat[] = [],
+  tramiteId?: string,
 ): Promise<ResultadoMensaje> {
-  const local = procesarMensaje(texto, alcaldia, coordenadas);
+  const local = procesarMensaje(texto, alcaldia, coordenadas, tramiteId);
   if (local.tipo !== 'consulta') return local;
 
   const resp = local.respuesta;
@@ -621,7 +626,7 @@ export async function procesarMensajeAsync(
     return {
       tipo: 'conversacion',
       texto:
-        'En este momento no pude consultar a la IA para responder tu pregunta específica. Intenta de nuevo en unos segundos, o pega una Gemini API Key en el botón ⚡ de arriba para respuestas sin límite.',
+        'Ahora mismo no pude responder esa duda con detalle. Intenta de nuevo en unos segundos o elige un trámite del catálogo para ver su ruta completa.',
     };
   }
 
