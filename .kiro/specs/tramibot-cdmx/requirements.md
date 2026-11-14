@@ -135,7 +135,7 @@ TrámiBot CDMX es una aplicación web (Agente Ciudadano de Trámites de la CDMX)
 2. THE bot SHALL responder con el mensaje de "Entrenamiento completado".
 3. WHEN se consulta de nuevo ese trámite, THE respuesta SHALL incluir el requisito entre los documentos y en la sección "Aprendido de ciudadanos en fila", con un botón para borrar la memoria.
 
-### Requirement 11: Búsqueda inteligente y LLM opcional
+### Requirement 11: Búsqueda inteligente e IA conversacional
 
 **User Story:** Como ciudadano, quiero escribir como hablo, para que el bot me entienda.
 
