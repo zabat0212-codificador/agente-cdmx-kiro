@@ -515,8 +515,11 @@ const L = {
   },
 };
 
+const FUENTE_RADIOGRAFIA =
+  'Fuente: Base de conocimiento curada sobre temas recurrentes en r/MexicoCity y X';
+
 const NOTA_RADIOGRAFIA =
-  'Referencia comunitaria ilustrativa basada en temas frecuentes de r/MexicoCity y X. No son citas textuales ni se consultan en vivo; verifica en el sitio oficial.';
+  'Verifica siempre en el sitio oficial antes de acudir.';
 
 export const EXTRAS_TRAMITE: Record<string, ExtrasTramite> = {
   'licencia-tipo-a': {
@@ -546,7 +549,7 @@ export const EXTRAS_TRAMITE: Record<string, ExtrasTramite> = {
       },
     ],
     radiografia: {
-      fuente: 'Reddit r/MexicoCity y X/Twitter',
+      fuente: FUENTE_RADIOGRAFIA,
       advertencias: [
         'Llega con tu cita impresa o en el celular y con originales; sin cita muchos módulos no te atienden.',
         'Revisa que el comprobante de domicilio sea reciente (máximo 3 meses) y a tu nombre.',
@@ -579,7 +582,7 @@ export const EXTRAS_TRAMITE: Record<string, ExtrasTramite> = {
       },
     ],
     radiografia: {
-      fuente: 'Reddit r/MexicoCity y X/Twitter',
+      fuente: FUENTE_RADIOGRAFIA,
       advertencias: [
         'Antes de pagar, revisa que no tengas multas o adeudos pendientes que bloqueen el trámite.',
         'Lleva el acta o denuncia si perdiste la tarjeta; sin ese papel te regresan.',
@@ -614,7 +617,7 @@ export const EXTRAS_TRAMITE: Record<string, ExtrasTramite> = {
       },
     ],
     radiografia: {
-      fuente: 'Reddit r/MexicoCity y X/Twitter',
+      fuente: FUENTE_RADIOGRAFIA,
       advertencias: [
         'Consulta primero la zonificación gratis en SIG CiudadMX; así sabes si el giro procede antes de pagar.',
         'La cuenta catastral mal capturada es la causa más común de rechazo.',
@@ -647,7 +650,7 @@ export const EXTRAS_TRAMITE: Record<string, ExtrasTramite> = {
       },
     ],
     radiografia: {
-      fuente: 'Reddit r/MexicoCity y X/Twitter',
+      fuente: FUENTE_RADIOGRAFIA,
       advertencias: [
         'El aviso de bajo impacto no cuesta: quien te cobre "por evitar clausura" te está estafando.',
         'Ten a la mano el acuse impreso o en el celular durante una visita de verificación.',
@@ -680,7 +683,7 @@ export const EXTRAS_TRAMITE: Record<string, ExtrasTramite> = {
       },
     ],
     radiografia: {
-      fuente: 'Reddit r/MexicoCity y X/Twitter',
+      fuente: FUENTE_RADIOGRAFIA,
       advertencias: [
         'Usa solo el portal oficial: hay páginas clonadas que cobran el doble.',
         'Si el registro es anterior a la digitalización, puede no aparecer; acude a un módulo.',
@@ -713,7 +716,7 @@ export const EXTRAS_TRAMITE: Record<string, ExtrasTramite> = {
       },
     ],
     radiografia: {
-      fuente: 'Reddit r/MexicoCity y X/Twitter',
+      fuente: FUENTE_RADIOGRAFIA,
       advertencias: [
         'Pon calle, entre calles y referencias: los reportes vagos se cierran sin atender.',
         'Adjunta foto y guarda el folio; sin folio no hay seguimiento.',

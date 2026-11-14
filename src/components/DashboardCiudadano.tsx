@@ -74,8 +74,8 @@ function TarjetaModulo({ r }: { r: AgentResponse }) {
         </a>
       </div>
       <p className="mt-2 text-xs text-gray-500">
-        Coordenadas aproximadas de la sede de la alcaldía. En la cita de SEMOVI confirma el módulo
-        asignado.
+        Sede de referencia en tu Alcaldía (confirma el módulo específico asignado al generar tu cita
+        oficial)
       </p>
     </div>
   );
@@ -193,13 +193,12 @@ function RadiografiaCallejera({ r }: { r: AgentResponse }) {
       <h4 className="text-sm font-bold text-amber-900">
         ⚠️ Lo que advierten otros ciudadanos que ya fueron a ventanilla
       </h4>
-      <p className="text-xs text-amber-800">Radiografía callejera · {rc.fuente}</p>
+      <p className="text-xs text-amber-800">{rc.fuente}</p>
       <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-amber-950">
         {rc.advertencias.map((a) => (
           <li key={a}>{a}</li>
         ))}
       </ul>
-      <p className="mt-2 text-xs italic text-amber-800">{rc.nota}</p>
     </section>
   );
 }

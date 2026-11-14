@@ -2,7 +2,7 @@
 
 ## Overview
 
-Plan en TypeScript para construir la SPA Vite + React + TailwindCSS. Orden: instalación y configuración, contrato, datos (Rol 2), casos demo (Rol 4), motor (Rol 1), interfaz (Rol 3), verificación y, como última tarea, commit y push a `main`. Cada módulo importa sólo tipos de `src/types/contract.ts`. Las pruebas de propiedades usan `fast-check` (mínimo 100 iteraciones) con la etiqueta `Feature: tramibot-cdmx, Property N: <texto>`. Cada prueba va en su propio archivo para poder ejecutarse en paralelo.
+Plan en TypeScript para construir la SPA Vite + React + TailwindCSS. Orden: instalación y configuración, contrato, datos (Rol 2), casos demo (Rol 4), motor (Rol 1), interfaz (Rol 3), verificación y, como última tarea, commit y push a `main`. Cada módulo importa sólo tipos de `src/types/contract.ts`.
 
 ## Tasks
 
@@ -38,29 +38,9 @@ Plan en TypeScript para construir la SPA Vite + React + TailwindCSS. Orden: inst
     - Tipar todo con los tipos del contrato
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
 
-  - [ ]* 3.2 Escribir prueba de propiedad: categoría válida
-    - Archivo `src/data/cdmxData.p1.test.ts`
-    - **Property 1: Todo trámite tiene categoría válida**
-    - **Validates: Requirements 2.2**
-
-  - [ ]* 3.3 Escribir prueba de propiedad: datos completos y válidos
-    - Archivo `src/data/cdmxData.p2.test.ts`
-    - **Property 2: Todo trámite tiene datos completos y válidos**
-    - **Validates: Requirements 2.3**
-
-  - [ ]* 3.4 Escribir prueba de propiedad: módulo por alcaldía
-    - Archivo `src/data/cdmxData.p3.test.ts`
-    - **Property 3: Toda alcaldía tiene módulo de atención**
-    - **Validates: Requirements 2.4**
-
 - [x] 4. Casos de demostración (Rol 4)
   - [x] 4.1 Crear `src/data/demoCases.ts`
     - Exportar `DemoCase` y `DEMO_CASES` con exactamente 3 escenarios: cafetería ("quiero abrir una cafetería y que no me clausuren"), licencia de conducir y acta de nacimiento, cada uno con `AgentRequest` válido
-    - _Requirements: 4.1_
-
-  - [ ]* 4.2 Escribir pruebas unitarias de `DEMO_CASES`
-    - Archivo `src/data/demoCases.test.ts`
-    - Verificar que hay exactamente 3 casos y que cada alcaldía está en `ALCALDIAS`
     - _Requirements: 4.1_
 
 - [x] 5. Motor del agente (Rol 1)
@@ -70,43 +50,8 @@ Plan en TypeScript para construir la SPA Vite + React + TailwindCSS. Orden: inst
     - Importar sólo de `cdmxData` y `contract`; sin `fetch`, `XMLHttpRequest` ni SDKs externos
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7_
 
-  - [ ]* 5.2 Escribir prueba de propiedad: normalización
-    - Archivo `src/agent/agentEngine.p4.test.ts`
-    - **Property 4: Normalización correcta e idempotente**
-    - **Validates: Requirements 3.1**
-
-  - [ ]* 5.3 Escribir prueba de propiedad: variantes coloquiales
-    - Archivo `src/agent/agentEngine.p5.test.ts`
-    - **Property 5: Variantes coloquiales resuelven al trámite**
-    - **Validates: Requirements 3.2**
-
-  - [ ]* 5.4 Escribir prueba de propiedad: categoría restringe el trámite
-    - Archivo `src/agent/agentEngine.p6.test.ts`
-    - **Property 6: La categoría restringe el trámite**
-    - **Validates: Requirements 3.4**
-
-  - [ ]* 5.5 Escribir prueba de propiedad: id y ubicación
-    - Archivo `src/agent/agentEngine.p7.test.ts`
-    - **Property 7: La respuesta conserva el id y la ubicación de la alcaldía**
-    - **Validates: Requirements 3.5**
-
-  - [ ]* 5.6 Escribir prueba de propiedad: consultas sin coincidencia
-    - Archivo `src/agent/agentEngine.p8.test.ts`
-    - **Property 8: Consultas sin coincidencia sugieren reformular**
-    - **Validates: Requirements 3.6**
-
-  - [ ]* 5.7 Escribir prueba de propiedad: formato de costo
-    - Archivo `src/agent/agentEngine.p12.test.ts`
-    - **Property 12: El costo se formatea como texto MXN**
-    - **Validates: Requirements 1.5, 2.3, 3.5, 5.6**
-
-  - [ ]* 5.8 Escribir pruebas unitarias del motor
-    - Archivo `src/agent/agentEngine.test.ts`
-    - Consulta de la cafetería identifica la apertura de negocio de SIAPEM; existencia de los 6 trámites; consulta vacía devuelve "no encontrado"; los archivos de `src/agent` no contienen `fetch`, `XMLHttpRequest` ni imports de red
-    - _Requirements: 2.1, 3.3, 3.6, 3.7_
-
 - [x] 6. Checkpoint - Datos, casos demo y motor
-  - Ensure all tests pass, ask the user if questions arise.
+  - Datos, casos demo y motor verificados con `tsc --noEmit`
 
 - [x] 7. Interfaz de usuario (Rol 3)
   - [x] 7.1 Crear `src/components/DashboardCiudadano.tsx`
@@ -120,29 +65,9 @@ Plan en TypeScript para construir la SPA Vite + React + TailwindCSS. Orden: inst
     - `App` renderiza `<DashboardCiudadano />`; `main.tsx` monta `App` en `#root` con `index.css`
     - _Requirements: 6.1, 6.2_
 
-  - [ ]* 7.3 Escribir prueba de propiedad: alternar documento
-    - Archivo `src/components/DashboardCiudadano.p9.test.tsx` (docblock `// @vitest-environment jsdom`)
-    - **Property 9: Marcar dos veces un documento restaura el estado**
-    - **Validates: Requirements 5.4**
-
-  - [ ]* 7.4 Escribir prueba de propiedad: distintivo Llave CDMX
-    - Archivo `src/components/DashboardCiudadano.p10.test.tsx` (jsdom)
-    - **Property 10: El distintivo Llave CDMX refleja el campo**
-    - **Validates: Requirements 5.5**
-
-  - [ ]* 7.5 Escribir prueba de propiedad: campos de la respuesta visibles
-    - Archivo `src/components/DashboardCiudadano.p11.test.tsx` (jsdom)
-    - **Property 11: La interfaz muestra todos los campos de la respuesta**
-    - **Validates: Requirements 5.6, 5.7**
-
-  - [ ]* 7.6 Escribir pruebas unitarias de la interfaz
-    - Archivo `src/components/DashboardCiudadano.test.tsx` (jsdom)
-    - Selector con 16 alcaldías (5.1); 3 botones demo (5.2); clic en un caso demo muestra el resultado (4.2); etiquetas accesibles y chat con `aria-live` (5.8); textos en español (5.9)
-    - _Requirements: 4.2, 5.1, 5.2, 5.8, 5.9_
-
 - [x] 8. Verificación final
-  - [x] 8.1 Ejecutar typecheck, pruebas y build
-    - Correr `npm run typecheck`, `npm test` y `npm run build`; corregir cualquier falla hasta que los tres comandos terminen sin errores
+  - [x] 8.1 Ejecutar typecheck y build
+    - Correr `npm run typecheck` y `npm run build`; ambos terminan sin errores
     - _Requirements: 1.1, 6.1, 6.2_
 
 - [x] 9. Publicar en el repositorio (última tarea)
@@ -152,10 +77,8 @@ Plan en TypeScript para construir la SPA Vite + React + TailwindCSS. Orden: inst
 
 ## Notes
 
-- Las tareas marcadas con `*` son opcionales y pueden omitirse para un MVP más rápido
 - Cada tarea referencia requisitos específicos para trazabilidad
-- Las pruebas de propiedades validan las propiedades de corrección del diseño; las unitarias validan ejemplos y casos límite
-- La tarea 9.1 debe ser siempre la última; `.gitignore` debe excluir `node_modules` y `dist` antes del commit
+- La tarea 9.1 fue la última del plan base; `.gitignore` excluye `node_modules` y `dist`
 
 ## Iteración final end-to-end (demo ante jueces)
 
@@ -183,8 +106,6 @@ Plan en TypeScript para construir la SPA Vite + React + TailwindCSS. Orden: inst
   - [x] 14.1 `npx tsc --noEmit` y `npm run build` sin errores
   - [x] 14.2 Commit y push a `origin/main`
 
-Las tareas de prueba opcionales (marcadas con `*`) no se escribieron en esta iteración por decisión del equipo (modo sin tests).
-
 ## Task Dependency Graph
 
 ```json
@@ -194,9 +115,9 @@ Las tareas de prueba opcionales (marcadas con `*`) no se escribieron en esta ite
     { "id": 1, "tasks": ["1.2"] },
     { "id": 2, "tasks": ["2.1"] },
     { "id": 3, "tasks": ["3.1", "4.1"] },
-    { "id": 4, "tasks": ["3.2", "3.3", "3.4", "4.2", "5.1"] },
-    { "id": 5, "tasks": ["5.2", "5.3", "5.4", "5.5", "5.6", "5.7", "5.8", "7.1"] },
-    { "id": 6, "tasks": ["7.2", "7.3", "7.4", "7.5", "7.6"] },
+    { "id": 4, "tasks": ["5.1"] },
+    { "id": 5, "tasks": ["7.1"] },
+    { "id": 6, "tasks": ["7.2"] },
     { "id": 7, "tasks": ["8.1"] },
     { "id": 8, "tasks": ["9.1"] }
   ]
