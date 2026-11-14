@@ -109,7 +109,7 @@ Implement the Bootstrap_Script as a TypeScript CLI (`scripts/bootstrap.ts`) with
     - An unreachable remote gives `failed` with the manual push command and the local commit remains
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6_
 
-- [-] 8. Final checkpoint - Ensure all tests pass
+- [x] 8. Final checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes

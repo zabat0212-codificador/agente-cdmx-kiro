@@ -1,0 +1,226 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1.1 Instalar dependencias y actualizar scripts en `package.json`": [
+      {
+        "executionId": "29735ee5-5b63-45de-a188-a3906b54ac2c",
+        "chatSessionId": "sess_bd06f3aa-f178-4aef-8215-1113cc517b30",
+        "timestamp": 1794679969811
+      },
+      {
+        "executionId": "29735ee5-5b63-45de-a188-a3906b54ac2c",
+        "chatSessionId": "sess_bd06f3aa-f178-4aef-8215-1113cc517b30",
+        "timestamp": 1794679984317
+      },
+      {
+        "executionId": "29735ee5-5b63-45de-a188-a3906b54ac2c",
+        "chatSessionId": "sess_bd06f3aa-f178-4aef-8215-1113cc517b30",
+        "timestamp": 1794680080720
+      }
+    ],
+    "1.2 Crear archivos de configuración y arranque": [
+      {
+        "executionId": "29735ee5-5b63-45de-a188-a3906b54ac2c",
+        "chatSessionId": "sess_bd06f3aa-f178-4aef-8215-1113cc517b30",
+        "timestamp": 1794679969847
+      },
+      {
+        "executionId": "29735ee5-5b63-45de-a188-a3906b54ac2c",
+        "chatSessionId": "sess_bd06f3aa-f178-4aef-8215-1113cc517b30",
+        "timestamp": 1794680083124
+      },
+      {
+        "executionId": "29735ee5-5b63-45de-a188-a3906b54ac2c",
+        "chatSessionId": "sess_bd06f3aa-f178-4aef-8215-1113cc517b30",
+        "timestamp": 1794680763036
+      }
+    ],
+    "2.1 Ampliar `src/types/contract.ts`": [
+      {
+        "executionId": "29735ee5-5b63-45de-a188-a3906b54ac2c",
+        "chatSessionId": "sess_bd06f3aa-f178-4aef-8215-1113cc517b30",
+        "timestamp": 1794679969923
+      },
+      {
+        "executionId": "29735ee5-5b63-45de-a188-a3906b54ac2c",
+        "chatSessionId": "sess_bd06f3aa-f178-4aef-8215-1113cc517b30",
+        "timestamp": 1794680765293
+      },
+      {
+        "executionId": "29735ee5-5b63-45de-a188-a3906b54ac2c",
+        "chatSessionId": "sess_bd06f3aa-f178-4aef-8215-1113cc517b30",
+        "timestamp": 1794680801030
+      }
+    ],
+    "3.1 Crear `src/data/cdmxData.ts`": [
+      {
+        "executionId": "29735ee5-5b63-45de-a188-a3906b54ac2c",
+        "chatSessionId": "sess_bd06f3aa-f178-4aef-8215-1113cc517b30",
+        "timestamp": 1794679971606
+      },
+      {
+        "executionId": "29735ee5-5b63-45de-a188-a3906b54ac2c",
+        "chatSessionId": "sess_bd06f3aa-f178-4aef-8215-1113cc517b30",
+        "timestamp": 1794680803432
+      },
+      {
+        "executionId": "29735ee5-5b63-45de-a188-a3906b54ac2c",
+        "chatSessionId": "sess_bd06f3aa-f178-4aef-8215-1113cc517b30",
+        "timestamp": 1794680962611
+      }
+    ],
+    "4.1 Crear `src/data/demoCases.ts`": [
+      {
+        "executionId": "29735ee5-5b63-45de-a188-a3906b54ac2c",
+        "chatSessionId": "sess_bd06f3aa-f178-4aef-8215-1113cc517b30",
+        "timestamp": 1794679971643
+      },
+      {
+        "executionId": "29735ee5-5b63-45de-a188-a3906b54ac2c",
+        "chatSessionId": "sess_bd06f3aa-f178-4aef-8215-1113cc517b30",
+        "timestamp": 1794680803919
+      },
+      {
+        "executionId": "29735ee5-5b63-45de-a188-a3906b54ac2c",
+        "chatSessionId": "sess_bd06f3aa-f178-4aef-8215-1113cc517b30",
+        "timestamp": 1794680963091
+      }
+    ],
+    "5.1 Crear `src/agent/agentEngine.ts`": [
+      {
+        "executionId": "29735ee5-5b63-45de-a188-a3906b54ac2c",
+        "chatSessionId": "sess_bd06f3aa-f178-4aef-8215-1113cc517b30",
+        "timestamp": 1794679971688
+      },
+      {
+        "executionId": "29735ee5-5b63-45de-a188-a3906b54ac2c",
+        "chatSessionId": "sess_bd06f3aa-f178-4aef-8215-1113cc517b30",
+        "timestamp": 1794680965844
+      },
+      {
+        "executionId": "29735ee5-5b63-45de-a188-a3906b54ac2c",
+        "chatSessionId": "sess_bd06f3aa-f178-4aef-8215-1113cc517b30",
+        "timestamp": 1794681025222
+      }
+    ],
+    "6. Checkpoint - Datos, casos demo y motor": [
+      {
+        "executionId": "29735ee5-5b63-45de-a188-a3906b54ac2c",
+        "chatSessionId": "sess_bd06f3aa-f178-4aef-8215-1113cc517b30",
+        "timestamp": 1794679971704
+      }
+    ],
+    "7.1 Crear `src/components/DashboardCiudadano.tsx`": [
+      {
+        "executionId": "29735ee5-5b63-45de-a188-a3906b54ac2c",
+        "chatSessionId": "sess_bd06f3aa-f178-4aef-8215-1113cc517b30",
+        "timestamp": 1794679971719
+      },
+      {
+        "executionId": "29735ee5-5b63-45de-a188-a3906b54ac2c",
+        "chatSessionId": "sess_bd06f3aa-f178-4aef-8215-1113cc517b30",
+        "timestamp": 1794681029084
+      },
+      {
+        "executionId": "29735ee5-5b63-45de-a188-a3906b54ac2c",
+        "chatSessionId": "sess_bd06f3aa-f178-4aef-8215-1113cc517b30",
+        "timestamp": 1794681084983
+      }
+    ],
+    "7.2 Reemplazar `src/App.tsx` y verificar `src/main.tsx`": [
+      {
+        "executionId": "29735ee5-5b63-45de-a188-a3906b54ac2c",
+        "chatSessionId": "sess_bd06f3aa-f178-4aef-8215-1113cc517b30",
+        "timestamp": 1794679971759
+      },
+      {
+        "executionId": "29735ee5-5b63-45de-a188-a3906b54ac2c",
+        "chatSessionId": "sess_bd06f3aa-f178-4aef-8215-1113cc517b30",
+        "timestamp": 1794681089151
+      },
+      {
+        "executionId": "29735ee5-5b63-45de-a188-a3906b54ac2c",
+        "chatSessionId": "sess_bd06f3aa-f178-4aef-8215-1113cc517b30",
+        "timestamp": 1794681114490
+      }
+    ],
+    "8.1 Ejecutar typecheck, pruebas y build": [
+      {
+        "executionId": "29735ee5-5b63-45de-a188-a3906b54ac2c",
+        "chatSessionId": "sess_bd06f3aa-f178-4aef-8215-1113cc517b30",
+        "timestamp": 1794679971772
+      },
+      {
+        "executionId": "29735ee5-5b63-45de-a188-a3906b54ac2c",
+        "chatSessionId": "sess_bd06f3aa-f178-4aef-8215-1113cc517b30",
+        "timestamp": 1794681117937
+      },
+      {
+        "executionId": "29735ee5-5b63-45de-a188-a3906b54ac2c",
+        "chatSessionId": "sess_bd06f3aa-f178-4aef-8215-1113cc517b30",
+        "timestamp": 1794681147121
+      }
+    ],
+    "9.1 Commit y push a `main`": [
+      {
+        "executionId": "29735ee5-5b63-45de-a188-a3906b54ac2c",
+        "chatSessionId": "sess_bd06f3aa-f178-4aef-8215-1113cc517b30",
+        "timestamp": 1794679971787
+      },
+      {
+        "executionId": "29735ee5-5b63-45de-a188-a3906b54ac2c",
+        "chatSessionId": "sess_bd06f3aa-f178-4aef-8215-1113cc517b30",
+        "timestamp": 1794681159088
+      }
+    ],
+    "1. Instalar y configurar Vite + React + TypeScript + Tailwind": [
+      {
+        "executionId": "29735ee5-5b63-45de-a188-a3906b54ac2c",
+        "chatSessionId": "sess_bd06f3aa-f178-4aef-8215-1113cc517b30",
+        "timestamp": 1794680763100
+      }
+    ],
+    "2. Contrato compartido": [
+      {
+        "executionId": "29735ee5-5b63-45de-a188-a3906b54ac2c",
+        "chatSessionId": "sess_bd06f3aa-f178-4aef-8215-1113cc517b30",
+        "timestamp": 1794680801059
+      }
+    ],
+    "3. Base de datos de trámites (Rol 2)": [
+      {
+        "executionId": "29735ee5-5b63-45de-a188-a3906b54ac2c",
+        "chatSessionId": "sess_bd06f3aa-f178-4aef-8215-1113cc517b30",
+        "timestamp": 1794680962656
+      }
+    ],
+    "4. Casos de demostración (Rol 4)": [
+      {
+        "executionId": "29735ee5-5b63-45de-a188-a3906b54ac2c",
+        "chatSessionId": "sess_bd06f3aa-f178-4aef-8215-1113cc517b30",
+        "timestamp": 1794680963131
+      }
+    ],
+    "5. Motor del agente (Rol 1)": [
+      {
+        "executionId": "29735ee5-5b63-45de-a188-a3906b54ac2c",
+        "chatSessionId": "sess_bd06f3aa-f178-4aef-8215-1113cc517b30",
+        "timestamp": 1794681025257
+      }
+    ],
+    "7. Interfaz de usuario (Rol 3)": [
+      {
+        "executionId": "29735ee5-5b63-45de-a188-a3906b54ac2c",
+        "chatSessionId": "sess_bd06f3aa-f178-4aef-8215-1113cc517b30",
+        "timestamp": 1794681114549
+      }
+    ],
+    "8. Verificación final": [
+      {
+        "executionId": "29735ee5-5b63-45de-a188-a3906b54ac2c",
+        "chatSessionId": "sess_bd06f3aa-f178-4aef-8215-1113cc517b30",
+        "timestamp": 1794681147175
+      }
+    ]
+  }
+}
