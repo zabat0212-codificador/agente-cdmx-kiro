@@ -1,7 +1,14 @@
 // Base de datos local de trámites de la CDMX (Rol 2).
 // Costos: cuotas del Código Fiscal de la Ciudad de México vigentes en 2026.
 // Las cuotas cambian cada ejercicio fiscal; confirmar en finanzas.cdmx.gob.mx antes de pagar.
-import type { AgentResponse, AlcaldiaCDMX, CategoriaTramite } from '../types/contract';
+import type {
+  AgentResponse,
+  AlcaldiaCDMX,
+  CategoriaTramite,
+  ModuloAtencion,
+  PasoOficial,
+  RadiografiaCallejera,
+} from '../types/contract';
 
 export interface TramiteRecord {
   id: string;
@@ -49,7 +56,7 @@ export const CATEGORIAS: CategoriaTramite[] = [
 ];
 
 // Sede de cada alcaldía, donde está su Centro de Servicios y Atención Ciudadana (CESAC / ventanilla única).
-export const MODULOS_ALCALDIA: Record<AlcaldiaCDMX, string> = {
+const DIRECCIONES_ALCALDIA: Record<AlcaldiaCDMX, string> = {
   'Álvaro Obregón':
     'Alcaldía Álvaro Obregón, Calle 10 s/n esq. Av. Canario, Col. Tolteca, C.P. 01150, Ciudad de México',
   Azcapotzalco:
@@ -436,3 +443,283 @@ export const TRAMITES: TramiteRecord[] = [
     ],
   },
 ];
+
+// ---------------------------------------------------------------------------
+// Módulos de atención por alcaldía con coordenadas GPS.
+// Las coordenadas son aproximadas (sede de cada alcaldía) y sirven para calcular
+// el módulo más cercano con Haversine. Confirma horario y dirección en la cita oficial.
+// ---------------------------------------------------------------------------
+const HORARIO_VUT = 'Lunes a viernes, aprox. 9:00 a 15:00 h (confirma antes de ir)';
+
+const COORDS: Record<AlcaldiaCDMX, [number, number]> = {
+  'Álvaro Obregón': [19.3589, -99.2037],
+  Azcapotzalco: [19.4869, -99.1844],
+  'Benito Juárez': [19.3708, -99.1608],
+  Coyoacán: [19.3499, -99.162],
+  'Cuajimalpa de Morelos': [19.3569, -99.2975],
+  Cuauhtémoc: [19.4472, -99.1527],
+  'Gustavo A. Madero': [19.4833, -99.113],
+  Iztacalco: [19.3955, -99.0975],
+  Iztapalapa: [19.3574, -99.0577],
+  'La Magdalena Contreras': [19.3322, -99.2402],
+  'Miguel Hidalgo': [19.4086, -99.1915],
+  'Milpa Alta': [19.1923, -99.0233],
+  Tláhuac: [19.2866, -99.0047],
+  Tlalpan: [19.2915, -99.1668],
+  'Venustiano Carranza': [19.4222, -99.1085],
+  Xochimilco: [19.2573, -99.1038],
+};
+
+export const MODULOS: ModuloAtencion[] = ALCALDIAS.map((alcaldia) => ({
+  alcaldia,
+  nombre: `Ventanilla Única de Trámites · Alcaldía ${alcaldia}`,
+  direccion: DIRECCIONES_ALCALDIA[alcaldia],
+  horario: HORARIO_VUT,
+  lat: COORDS[alcaldia][0],
+  lng: COORDS[alcaldia][1],
+}));
+
+/** Dirección de texto por alcaldía (compatibilidad con el motor). */
+export const MODULOS_ALCALDIA: Record<AlcaldiaCDMX, string> = DIRECCIONES_ALCALDIA;
+
+/** UP Mixcoac: punto de respaldo cuando el navegador bloquea el GPS. */
+export const UP_MIXCOAC = { lat: 19.3733, lng: -99.1834 };
+
+// ---------------------------------------------------------------------------
+// Flujos oficiales (links .cdmx.gob.mx) y radiografía callejera por trámite.
+// La radiografía es una referencia curada, ilustrativa: no son citas textuales
+// ni se consulta Reddit/X en vivo.
+// ---------------------------------------------------------------------------
+export interface ExtrasTramite {
+  variantes?: string[];
+  pasosOficiales: PasoOficial[];
+  radiografia: RadiografiaCallejera;
+}
+
+const L = {
+  llave: { etiqueta: '🔑 Llave CDMX', url: 'https://llave.cdmx.gob.mx' },
+  pago: {
+    etiqueta: '💳 Pagar línea de captura (Finanzas)',
+    url: 'https://data.finanzas.cdmx.gob.mx',
+  },
+  citasSemovi: {
+    etiqueta: '📅 Agendar cita SEMOVI',
+    url: 'https://app.semovi.cdmx.gob.mx/citas/',
+  },
+  seduvi: { etiqueta: '🏙️ Portal SEDUVI', url: 'https://seduvi.cdmx.gob.mx' },
+  siapem: { etiqueta: '🏪 SIAPEM', url: 'https://siapem.cdmx.gob.mx' },
+  actas: { etiqueta: '📄 Actas en línea', url: 'https://actas.cdmx.gob.mx' },
+  suac: {
+    etiqueta: '📣 Atención Ciudadana',
+    url: 'https://atencionciudadana.cdmx.gob.mx',
+  },
+};
+
+const NOTA_RADIOGRAFIA =
+  'Referencia comunitaria ilustrativa basada en temas frecuentes de r/MexicoCity y X. No son citas textuales ni se consultan en vivo; verifica en el sitio oficial.';
+
+export const EXTRAS_TRAMITE: Record<string, ExtrasTramite> = {
+  'licencia-tipo-a': {
+    variantes: ['Nueva', 'Renovación', 'Digital (renovación en línea, si aplica a tu caso)'],
+    pasosOficiales: [
+      {
+        numero: 1,
+        titulo: 'Llave CDMX y pago de línea de captura',
+        descripcion:
+          'Entra con tu Llave CDMX, captura tus datos, genera la línea de captura y págala.',
+        enlaces: [L.llave, L.pago],
+      },
+      {
+        numero: 2,
+        titulo: 'Examen y validación digital',
+        descripcion:
+          'Si es licencia nueva, presenta el examen que corresponda. Si renuevas, valida tus datos y tu licencia anterior en línea.',
+        enlaces: [L.llave],
+      },
+      {
+        numero: 3,
+        titulo: 'Cita y módulo físico más cercano',
+        descripcion:
+          'Agenda tu cita en el Sistema de Citas de SEMOVI y acude con originales para foto y firma.',
+        enlaces: [L.citasSemovi],
+        muestraModulo: true,
+      },
+    ],
+    radiografia: {
+      fuente: 'Reddit r/MexicoCity y X/Twitter',
+      advertencias: [
+        'Llega con tu cita impresa o en el celular y con originales; sin cita muchos módulos no te atienden.',
+        'Revisa que el comprobante de domicilio sea reciente (máximo 3 meses) y a tu nombre.',
+        'Nadie afuera del módulo es autoridad: ignora a quienes ofrecen "adelantar" tu cita.',
+      ],
+      nota: NOTA_RADIOGRAFIA,
+    },
+  },
+  'tarjeta-circulacion': {
+    variantes: ['Renovación de vigencia (en línea)', 'Reposición por pérdida, robo o deterioro (con cita)'],
+    pasosOficiales: [
+      {
+        numero: 1,
+        titulo: 'Llave CDMX y pago',
+        descripcion: 'Inicia sesión, revisa adeudos y paga tu línea de captura.',
+        enlaces: [L.llave, L.pago],
+      },
+      {
+        numero: 2,
+        titulo: 'Validación digital del trámite',
+        descripcion: 'Captura placa y datos del propietario; descarga tu comprobante.',
+        enlaces: [L.llave],
+      },
+      {
+        numero: 3,
+        titulo: 'Cita y módulo físico más cercano',
+        descripcion: 'Solo para reposición del plástico: agenda cita y acude con originales.',
+        enlaces: [L.citasSemovi],
+        muestraModulo: true,
+      },
+    ],
+    radiografia: {
+      fuente: 'Reddit r/MexicoCity y X/Twitter',
+      advertencias: [
+        'Antes de pagar, revisa que no tengas multas o adeudos pendientes que bloqueen el trámite.',
+        'Lleva el acta o denuncia si perdiste la tarjeta; sin ese papel te regresan.',
+        'Paga solo con la línea de captura oficial, nunca por transferencia a terceros.',
+      ],
+      nota: NOTA_RADIOGRAFIA,
+    },
+  },
+  cuzus: {
+    variantes: ['Certificado digital de zonificación', 'Uso de suelo comercial para local'],
+    pasosOficiales: [
+      {
+        numero: 1,
+        titulo: 'Llave CDMX y pago de línea de captura',
+        descripcion: 'Ingresa con tu Llave CDMX y paga el derecho con tu línea de captura.',
+        enlaces: [L.llave, L.pago],
+      },
+      {
+        numero: 2,
+        titulo: 'Solicitud y validación digital en SEDUVI',
+        descripcion:
+          'Captura la cuenta catastral y la dirección, descarga el certificado y valida su autenticidad.',
+        enlaces: [L.seduvi],
+      },
+      {
+        numero: 3,
+        titulo: 'Atención presencial si necesitas aclaración',
+        descripcion:
+          'Si el sistema marca inconsistencias en tu predio, acude a ventanilla con cuenta catastral y escrituras.',
+        enlaces: [L.seduvi],
+        muestraModulo: true,
+      },
+    ],
+    radiografia: {
+      fuente: 'Reddit r/MexicoCity y X/Twitter',
+      advertencias: [
+        'Consulta primero la zonificación gratis en SIG CiudadMX; así sabes si el giro procede antes de pagar.',
+        'La cuenta catastral mal capturada es la causa más común de rechazo.',
+        'Desconfía de gestores que prometen "uso de suelo seguro": es el cobro típico de coyotes.',
+      ],
+      nota: NOTA_RADIOGRAFIA,
+    },
+  },
+  'apertura-negocio-bajo-impacto': {
+    variantes: ['Aviso de bajo impacto (SIAPEM)'],
+    pasosOficiales: [
+      {
+        numero: 1,
+        titulo: 'Llave CDMX y consulta de uso de suelo',
+        descripcion: 'Crea tu Llave CDMX y confirma que el uso de suelo del local permita tu giro.',
+        enlaces: [L.llave, L.seduvi],
+      },
+      {
+        numero: 2,
+        titulo: 'Aviso en línea en el SIAPEM',
+        descripcion: 'Captura titular, local y giro, adjunta documentos y descarga tu acuse.',
+        enlaces: [L.siapem],
+      },
+      {
+        numero: 3,
+        titulo: 'Ventanilla de tu alcaldía (si necesitas apoyo)',
+        descripcion: 'Conserva el acuse en el local; la ventanilla de la alcaldía te orienta sin costo.',
+        enlaces: [L.siapem],
+        muestraModulo: true,
+      },
+    ],
+    radiografia: {
+      fuente: 'Reddit r/MexicoCity y X/Twitter',
+      advertencias: [
+        'El aviso de bajo impacto no cuesta: quien te cobre "por evitar clausura" te está estafando.',
+        'Ten a la mano el acuse impreso o en el celular durante una visita de verificación.',
+        'Si tu giro vende alcohol o tiene aforo alto, deja de ser bajo impacto: confirma tu giro antes.',
+      ],
+      nota: NOTA_RADIOGRAFIA,
+    },
+  },
+  'acta-registro-civil': {
+    variantes: ['Acta de nacimiento', 'Acta de matrimonio', 'Acta de defunción'],
+    pasosOficiales: [
+      {
+        numero: 1,
+        titulo: 'Llave CDMX y pago de línea de captura',
+        descripcion: 'Inicia sesión y paga el derecho de la copia certificada.',
+        enlaces: [L.llave, L.pago],
+      },
+      {
+        numero: 2,
+        titulo: 'Búsqueda y descarga digital del acta',
+        descripcion: 'Busca el registro con CURP y descarga el PDF certificado.',
+        enlaces: [L.actas],
+      },
+      {
+        numero: 3,
+        titulo: 'Módulo del Registro Civil (si no la encuentras en línea)',
+        descripcion: 'Acude a un juzgado o módulo con identificación y CURP.',
+        enlaces: [L.actas],
+        muestraModulo: true,
+      },
+    ],
+    radiografia: {
+      fuente: 'Reddit r/MexicoCity y X/Twitter',
+      advertencias: [
+        'Usa solo el portal oficial: hay páginas clonadas que cobran el doble.',
+        'Si el registro es anterior a la digitalización, puede no aparecer; acude a un módulo.',
+        'Imprime en papel blanco tamaño carta; el PDF certificado tiene validez con su código.',
+      ],
+      nota: NOTA_RADIOGRAFIA,
+    },
+  },
+  'reporte-suac-locatel': {
+    variantes: ['Baches', 'Fugas de agua', 'Luminarias'],
+    pasosOficiales: [
+      {
+        numero: 1,
+        titulo: 'Levanta tu reporte',
+        descripcion: 'Llama a Locatel (55 5658 1111 o *0311) o reporta en línea con dirección exacta.',
+        enlaces: [L.suac],
+      },
+      {
+        numero: 2,
+        titulo: 'Guarda tu folio y da seguimiento',
+        descripcion: 'Anota el folio y consulta el avance por el mismo canal.',
+        enlaces: [L.suac],
+      },
+      {
+        numero: 3,
+        titulo: 'Escala en la ventanilla de tu alcaldía',
+        descripcion: 'Si no hay respuesta, acude con tu folio a la ventanilla.',
+        enlaces: [L.suac],
+        muestraModulo: true,
+      },
+    ],
+    radiografia: {
+      fuente: 'Reddit r/MexicoCity y X/Twitter',
+      advertencias: [
+        'Pon calle, entre calles y referencias: los reportes vagos se cierran sin atender.',
+        'Adjunta foto y guarda el folio; sin folio no hay seguimiento.',
+        'Si pasan varios días, repite el reporte citando el folio anterior.',
+      ],
+      nota: NOTA_RADIOGRAFIA,
+    },
+  },
+};

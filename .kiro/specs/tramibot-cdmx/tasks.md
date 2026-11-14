@@ -105,7 +105,7 @@ Plan en TypeScript para construir la SPA Vite + React + TailwindCSS. Orden: inst
     - Consulta de la cafetería identifica la apertura de negocio de SIAPEM; existencia de los 6 trámites; consulta vacía devuelve "no encontrado"; los archivos de `src/agent` no contienen `fetch`, `XMLHttpRequest` ni imports de red
     - _Requirements: 2.1, 3.3, 3.6, 3.7_
 
-- [~] 6. Checkpoint - Datos, casos demo y motor
+- [x] 6. Checkpoint - Datos, casos demo y motor
   - Ensure all tests pass, ask the user if questions arise.
 
 - [x] 7. Interfaz de usuario (Rol 3)
@@ -145,8 +145,8 @@ Plan en TypeScript para construir la SPA Vite + React + TailwindCSS. Orden: inst
     - Correr `npm run typecheck`, `npm test` y `npm run build`; corregir cualquier falla hasta que los tres comandos terminen sin errores
     - _Requirements: 1.1, 6.1, 6.2_
 
-- [ ] 9. Publicar en el repositorio (última tarea)
-  - [-] 9.1 Commit y push a `main`
+- [x] 9. Publicar en el repositorio (última tarea)
+  - [x] 9.1 Commit y push a `main`
     - Ejecutar sólo cuando todas las demás tareas estén completas y 8.1 haya pasado: `git add -A && git commit -m "feat: tramibot cdmx base, spec y contrato para 4 roles" && git push origin main`
     - _Requirements: 7.1_
 
@@ -156,6 +156,34 @@ Plan en TypeScript para construir la SPA Vite + React + TailwindCSS. Orden: inst
 - Cada tarea referencia requisitos específicos para trazabilidad
 - Las pruebas de propiedades validan las propiedades de corrección del diseño; las unitarias validan ejemplos y casos límite
 - La tarea 9.1 debe ser siempre la última; `.gitignore` debe excluir `node_modules` y `dist` antes del commit
+
+## Iteración final end-to-end (demo ante jueces)
+
+- [x] 10. Contrato ampliado
+  - [x] 10.1 Agregar `Coordenadas`, `ModuloAtencion`, `ModuloCercano`, `PasoOficial`, `EnlaceOficial`, `RadiografiaCallejera` y campos opcionales en `AgentRequest`/`AgentResponse`
+    - _Requirements: 8.1, 9.1_
+- [x] 11. Datos oficiales y GPS
+  - [x] 11.1 Coordenadas y horario de los 16 módulos en `cdmxData.ts`
+    - _Requirements: 9.1_
+  - [x] 11.2 Flujos con links `.cdmx.gob.mx` y radiografía callejera por trámite
+    - _Requirements: 8.2, 8.3_
+- [x] 12. Motor del agente
+  - [x] 12.1 Haversine y módulo más cercano
+    - _Requirements: 9.2_
+  - [x] 12.2 Detección de entrenamiento ciudadano y memoria colectiva en `localStorage`
+    - _Requirements: 10.1, 10.2, 10.3_
+  - [x] 12.3 Normalizador con tolerancia a errores de dedo y LLM opcional con fallback local
+    - _Requirements: 11.1, 11.2_
+- [x] 13. Interfaz de chatbot institucional y 4 botones de demo
+  - [x] 13.1 Chat, indicador de verificación, tarjetas (ruta, checklist con progreso, radiografía, memoria) y botón GPS
+    - _Requirements: 8.1, 9.3, 12.1_
+  - [x] 13.2 Cuatro casos de demo en `demoCases.ts`
+    - _Requirements: 12.1_
+- [x] 14. Verificación y publicación
+  - [x] 14.1 `npx tsc --noEmit` y `npm run build` sin errores
+  - [x] 14.2 Commit y push a `origin/main`
+
+Las tareas de prueba opcionales (marcadas con `*`) no se escribieron en esta iteración por decisión del equipo (modo sin tests).
 
 ## Task Dependency Graph
 

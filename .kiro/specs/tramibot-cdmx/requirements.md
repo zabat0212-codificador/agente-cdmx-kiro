@@ -103,3 +103,52 @@ TrámiBot CDMX es una aplicación web (Agente Ciudadano de Trámites de la CDMX)
 #### Acceptance Criteria
 
 1. WHEN todas las demás tareas están completas, THE equipo SHALL ejecutar `git add -A && git commit -m "feat: tramibot cdmx base, spec y contrato para 4 roles" && git push origin main` como última tarea.
+
+### Requirement 8: Chatbot conversacional con tarjetas interactivas
+
+**User Story:** Como ciudadano, quiero conversar con el bot y recibir rutas, documentos y advertencias claras, para completar mi trámite sin coyotes.
+
+#### Acceptance Criteria
+
+1. THE Dashboard SHALL mostrar historial de mensajes usuario/agente, un indicador "Verificando fuentes oficiales .cdmx.gob.mx y reportes ciudadanos en Reddit/X..." mientras responde y un campo de entrada siempre visible.
+2. THE respuesta SHALL incluir una ruta numerada de 3 pasos con botones a links oficiales `.cdmx.gob.mx`.
+3. THE respuesta SHALL incluir un checklist interactivo con barra de progreso "Tienes X de Y requisitos listos para tu cita" y una tarjeta de radiografía callejera marcada como referencia ilustrativa.
+
+### Requirement 9: Geolocalización y módulo más cercano
+
+**User Story:** Como ciudadano, quiero saber qué módulo me queda más cerca, para ahorrar traslados.
+
+#### Acceptance Criteria
+
+1. THE cdmxData SHALL incluir latitud, longitud, dirección y horario para los módulos de las 16 alcaldías.
+2. WHEN hay coordenadas, THE agentEngine SHALL calcular con Haversine la distancia en km y elegir el módulo más cercano.
+3. IF el navegador bloquea el GPS o la ubicación está fuera de la CDMX, THEN THE Dashboard SHALL usar las coordenadas de UP Mixcoac (19.3733, -99.1834) y avisarlo.
+4. THE respuesta SHALL mostrar distancia, dirección, horario y un botón "Abrir ubicación en Google Maps".
+
+### Requirement 10: Auto-entrenamiento ciudadano
+
+**User Story:** Como ciudadano, quiero enseñarle al bot lo que me pidieron en ventanilla, para que otros lo sepan.
+
+#### Acceptance Criteria
+
+1. WHEN el mensaje contiene una experiencia de fila (por ejemplo "te faltó decirme que...", "me pidieron también..."), THE agentEngine SHALL extraer el requisito y guardarlo en `localStorage` asociado al trámite.
+2. THE bot SHALL responder con el mensaje de "Entrenamiento completado".
+3. WHEN se consulta de nuevo ese trámite, THE respuesta SHALL incluir el requisito entre los documentos y en la sección "Aprendido de ciudadanos en fila", con un botón para borrar la memoria.
+
+### Requirement 11: Búsqueda inteligente y LLM opcional
+
+**User Story:** Como ciudadano, quiero escribir como hablo, para que el bot me entienda.
+
+#### Acceptance Criteria
+
+1. THE agentEngine SHALL normalizar acentos, modismos y tolerar errores de dedo.
+2. WHERE exista `VITE_LLM_API_KEY`, THE agentEngine SHALL usar el LLM solo si el motor local no identifica el trámite, y SHALL conservar el resultado local si el LLM falla.
+
+### Requirement 12: Demo de 3 minutos
+
+**User Story:** Como presentador, quiero cuatro botones de un clic, para mostrar consulta, entrenamiento y verificación.
+
+#### Acceptance Criteria
+
+1. THE Dashboard SHALL mostrar 4 botones: licencia con módulo cercano, uso de suelo comercial, entrenar al bot y volver a consultar licencia.
+

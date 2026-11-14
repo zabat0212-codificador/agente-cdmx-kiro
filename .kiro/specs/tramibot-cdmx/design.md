@@ -177,6 +177,14 @@ Accesibilidad: `<label>` asociado a cada control, `aria-live="polite"` en el cha
 
 Renderiza `<DashboardCiudadano />`. `main.tsx` monta `App` en `#root`.
 
+## Extensión end-to-end (Requirements 8 a 12)
+
+- **Contrato:** `Coordenadas`, `ModuloAtencion`, `ModuloCercano`, `PasoOficial`, `RadiografiaCallejera`; `AgentRequest.coordenadas?` y campos opcionales en `AgentResponse` (`pasosOficiales`, `radiografiaCallejera`, `aprendidoCiudadanos`, `moduloCercano`, `variantes`, `tramiteId`).
+- **cdmxData:** `MODULOS` (16, con lat/lng aproximadas de la sede), `UP_MIXCOAC`, `EXTRAS_TRAMITE` (flujos con links oficiales y radiografía por trámite).
+- **agentEngine:** `haversineKm`, `moduloMasCercano`, `detectarEntrenamiento`, memoria en `localStorage` (`tramibot:memoria-colectiva`), `procesarMensaje` (consulta o entrenamiento) y `procesarMensajeAsync` (LLM opcional solo como respaldo del motor local).
+- **UI:** chat con tarjetas (ruta, módulo, checklist, radiografía, memoria), botón GPS con fallback a UP Mixcoac y 4 botones de demo.
+- **Limitaciones declaradas:** la radiografía callejera es curada e ilustrativa (no consulta Reddit/X en vivo); las coordenadas son aproximadas; una clave LLM en el frontend queda expuesta.
+
 ## Data Models
 
 - `AgentRequest` y `AgentResponse`: ver Contract.

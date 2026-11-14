@@ -36,11 +36,54 @@ export type CategoriaTramite =
   | 'Identidad y Registro Civil'
   | 'Atención Ciudadana (SUAC)';
 
+export interface Coordenadas {
+  lat: number;
+  lng: number;
+}
+
+/** Ventanilla Única de Trámites (VUT) / sede de alcaldía con coordenadas GPS. */
+export interface ModuloAtencion {
+  alcaldia: AlcaldiaCDMX;
+  nombre: string;
+  direccion: string;
+  horario: string;
+  lat: number;
+  lng: number;
+}
+
+export interface ModuloCercano {
+  modulo: ModuloAtencion;
+  /** Presente solo cuando se conocen las coordenadas de la persona usuaria. */
+  distanciaKm?: number;
+  mapsUrl: string;
+}
+
+export interface EnlaceOficial {
+  etiqueta: string;
+  url: string;
+}
+
+export interface PasoOficial {
+  numero: number;
+  titulo: string;
+  descripcion: string;
+  enlaces: EnlaceOficial[];
+  /** Si es true, la interfaz muestra aquí el módulo físico más cercano. */
+  muestraModulo?: boolean;
+}
+
+export interface RadiografiaCallejera {
+  fuente: string;
+  advertencias: string[];
+  nota: string;
+}
+
 export interface AgentRequest {
   id: string;
   consultaCiudadana: string;
   alcaldia: AlcaldiaCDMX;
   categoria?: CategoriaTramite;
+  coordenadas?: Coordenadas;
 }
 
 export interface AgentResponse {
@@ -58,4 +101,12 @@ export interface AgentResponse {
   alertaAnticorrupcion: string;
   ubicacionModuloAlcaldia: string;
   impactoComunitario: { poblacionObjetivo: string; ahorroEstimado: string };
+  // Extensiones opcionales (versión end-to-end)
+  tramiteId?: string;
+  variantes?: string[];
+  pasosOficiales?: PasoOficial[];
+  radiografiaCallejera?: RadiografiaCallejera;
+  /** Requisitos enseñados por otros ciudadanos (memoria colectiva, localStorage). */
+  aprendidoCiudadanos?: string[];
+  moduloCercano?: ModuloCercano;
 }
